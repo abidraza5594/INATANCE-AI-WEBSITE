@@ -202,8 +202,8 @@ export default function Dashboard({ user }) {
     ? 'https://rzp.io/rzp/7Q42vVa'  // First time ₹300
     : 'https://rzp.io/rzp/GrVtHchT'; // Regular ₹500
 
-  // Testing link (₹1 for 30 minutes)
-  const testingLink = 'https://rzp.io/rzp/0Jo7CKc';
+  // Testing link (₹1 for 30 minutes) - COMMENTED OUT FOR PRODUCTION
+  // const testingLink = 'https://rzp.io/rzp/0Jo7CKc';
 
   const features = [
     '2 Hours Practice Time',
@@ -596,8 +596,8 @@ export default function Dashboard({ user }) {
                   </p>
                 </div>
 
-                {/* Testing Button */}
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
+                {/* Testing Button - COMMENTED OUT FOR PRODUCTION */}
+                {/* <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
                   <p className="text-sm text-blue-800 mb-3 flex items-start">
                     <span className="text-lg mr-2">🧪</span>
                     <span><strong>Testing Mode:</strong> Try with ₹1 payment (30 minutes)</span>
@@ -608,7 +608,7 @@ export default function Dashboard({ user }) {
                   >
                     Test Payment - ₹1 (30 minutes) 🚀
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </motion.div>
