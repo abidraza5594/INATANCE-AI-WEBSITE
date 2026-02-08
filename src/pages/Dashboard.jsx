@@ -219,38 +219,38 @@ export default function Dashboard({ user }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+      {/* Modern Header with Gradient */}
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="bg-primary-600 p-2 rounded-lg">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="bg-gradient-to-br from-primary-600 to-blue-600 p-2.5 rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
                 <Mic className="h-6 w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">InterviewAI</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">InterviewAI</span>
             </Link>
             <div className="flex items-center space-x-4">
-              {/* App Status Indicator */}
+              {/* Modern App Status Indicator */}
               {appStatus === 'active' && (
-                <div className="flex items-center space-x-2 text-sm">
+                <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
                   <div className="relative">
-                    <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
-                    <div className="absolute inset-0 h-3 w-3 rounded-full bg-green-500 animate-ping"></div>
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <div className="absolute inset-0 h-2.5 w-2.5 rounded-full bg-green-500 animate-ping"></div>
                   </div>
-                  <span className="text-green-600 font-medium">🎯 App Active</span>
+                  <span className="text-green-700 font-semibold text-sm">App Active</span>
                 </div>
               )}
               {appStatus === 'idle' && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse"></div>
-                  <span className="text-yellow-600 font-medium">⏸️ App Idle</span>
+                <div className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-full">
+                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <span className="text-yellow-700 font-semibold text-sm">App Idle</span>
                 </div>
               )}
               {appStatus === 'offline' && (
-                <div className="flex items-center space-x-2 text-sm">
-                  <div className="h-3 w-3 rounded-full bg-gray-400"></div>
-                  <span className="text-gray-500 font-medium">⚪ App Offline</span>
+                <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full">
+                  <div className="h-2.5 w-2.5 rounded-full bg-gray-400"></div>
+                  <span className="text-gray-600 font-semibold text-sm">App Offline</span>
                 </div>
               )}
               
@@ -258,13 +258,12 @@ export default function Dashboard({ user }) {
               {syncing && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
-                  <span>Syncing...</span>
                 </div>
               )}
               
-              <button onClick={handleLogout} className="btn-secondary flex items-center space-x-2">
+              <button onClick={handleLogout} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className="font-medium">Logout</span>
               </button>
             </div>
           </div>
@@ -272,33 +271,39 @@ export default function Dashboard({ user }) {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
+        {/* Modern Welcome Section with Gradient */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-8 text-center"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-primary-600 to-blue-600 bg-clip-text text-transparent mb-2">
             Welcome back, {user?.displayName || 'User'}!
           </h1>
-          <p className="text-gray-600">Ready to practice your interview skills?</p>
+          <p className="text-gray-600 text-lg">Ready to ace your next interview? 🚀</p>
         </motion.div>
 
-        {/* Stats Grid */}
+        {/* Modern Stats Grid with Gradients */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="card"
+            className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 group"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Remaining Time</p>
-                <p className="text-3xl font-bold text-gray-900">{formatTime(remainingTime)}</p>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-blue-100 text-sm font-medium mb-1">Remaining Time</p>
+                  <p className="text-4xl font-black text-white">{formatTime(remainingTime)}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
+                  <Clock className="h-8 w-8 text-white" />
+                </div>
               </div>
-              <div className="bg-primary-100 p-3 rounded-lg">
-                <Clock className="h-8 w-8 text-primary-600" />
+              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-white/40 rounded-full" style={{width: `${Math.min((remainingTime / 7200) * 100, 100)}%`}}></div>
               </div>
             </div>
           </motion.div>
@@ -307,15 +312,18 @@ export default function Dashboard({ user }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="card"
+            className="relative overflow-hidden bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 group"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Purchased</p>
-                <p className="text-3xl font-bold text-gray-900">{formatTime(totalPurchased)}</p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <TrendingUp className="h-8 w-8 text-green-600" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm font-medium mb-1">Total Purchased</p>
+                  <p className="text-4xl font-black text-white">{formatTime(totalPurchased)}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
+                  <TrendingUp className="h-8 w-8 text-white" />
+                </div>
               </div>
             </div>
           </motion.div>
@@ -324,197 +332,245 @@ export default function Dashboard({ user }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="card"
+            className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 group"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Sessions</p>
-                <p className="text-3xl font-bold text-gray-900">{userData?.payment_history?.length || 0}</p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Award className="h-8 w-8 text-purple-600" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm font-medium mb-1">Sessions</p>
+                  <p className="text-4xl font-black text-white">{userData?.payment_history?.length || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
+                  <Award className="h-8 w-8 text-white" />
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Section */}
+          {/* Modern Profile Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
             className="lg:col-span-1"
           >
-            <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                <User className="h-5 w-5 mr-2" />
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <div className="bg-gradient-to-br from-primary-500 to-blue-500 p-2 rounded-lg mr-3">
+                  <User className="h-5 w-5 text-white" />
+                </div>
                 Profile
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center space-x-4">
                   {user?.photoURL ? (
                     <img 
                       src={user.photoURL} 
                       alt="Profile" 
-                      className="h-16 w-16 rounded-full"
+                      className="h-20 w-20 rounded-full ring-4 ring-primary-100 shadow-lg"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full bg-primary-100 flex items-center justify-center">
-                      <User className="h-8 w-8 text-primary-600" />
+                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary-400 to-blue-500 flex items-center justify-center ring-4 ring-primary-100 shadow-lg">
+                      <User className="h-10 w-10 text-white" />
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold text-gray-900">{user?.displayName}</p>
+                    <p className="font-bold text-gray-900 text-lg">{user?.displayName}</p>
                     <p className="text-sm text-gray-600">{user?.email}</p>
                   </div>
                 </div>
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-gray-600 mb-2">Member since</p>
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-600">Member since</p>
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                  </div>
                   <p className="text-sm font-semibold text-gray-900">
-                    {userData?.createdAt?.toDate().toLocaleDateString() || 'Recently'}
+                    {userData?.createdAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) || 'Recently'}
                   </p>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Payment Section */}
+          {/* Modern Payment Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
             className="lg:col-span-2"
           >
-            <div className="card">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <CreditCard className="h-5 w-5 mr-2" />
+                <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-lg mr-3">
+                  <CreditCard className="h-5 w-5 text-white" />
+                </div>
                 Add Practice Time
               </h2>
 
-              {/* Single Smart Pricing Card */}
+              {/* Modern Pricing Card */}
               <div className="relative max-w-md mx-auto">
-                {/* Special Offer Badge - Only for first time */}
+                {/* Special Offer Badge */}
                 {isFirstTime && (
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3, type: "spring" }}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
                     className="absolute -top-4 -right-4 z-10"
                   >
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center space-x-2 animate-pulse">
-                      <Sparkles className="h-4 w-4" />
+                    <div className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-2xl flex items-center space-x-2 animate-pulse">
+                      <Sparkles className="h-4 w-4 animate-spin" />
                       <span className="font-bold text-xs">SPECIAL OFFER!</span>
                     </div>
                   </motion.div>
                 )}
 
-                <div className="border-2 border-primary-200 rounded-xl p-6 bg-gradient-to-br from-white to-blue-50 shadow-lg hover:shadow-xl transition-all duration-300">
-                  {/* Header */}
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {isFirstTime ? 'First Time Special' : 'Regular Price'}
-                    </h3>
-                    
-                    <div className="flex items-center justify-center space-x-2 mb-3">
-                      <div className="text-5xl font-black bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
-                        ₹{currentPrice}
+                <div className="relative overflow-hidden border-2 border-primary-200 rounded-2xl p-8 bg-gradient-to-br from-white via-blue-50 to-purple-50 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+                  {/* Animated Background */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-200/30 to-blue-200/30 rounded-full -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-700"></div>
+                  
+                  <div className="relative z-10">
+                    {/* Header */}
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                        {isFirstTime ? '🎉 First Time Special' : '⚡ Regular Price'}
+                      </h3>
+                      
+                      <div className="flex items-center justify-center space-x-3 mb-4">
+                        <div className="text-6xl font-black bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                          ₹{currentPrice}
+                        </div>
                       </div>
+
+                      {isFirstTime && (
+                        <div className="inline-block bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-3 shadow-md">
+                          💰 Save ₹200 on your first purchase!
+                        </div>
+                      )}
+
+                      <p className="text-gray-700 font-semibold text-lg">⏱️ 2 Hours Practice Time</p>
+                      
+                      {!isFirstTime && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Regular price for subsequent purchases
+                        </p>
+                      )}
                     </div>
 
-                    {isFirstTime && (
-                      <div className="inline-block bg-gradient-to-r from-orange-100 to-red-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold mb-2">
-                        Save ₹200 on your first purchase!
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      {features.map((feature, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.6 + index * 0.05 }}
+                          className="flex items-center space-x-2 bg-white/60 backdrop-blur-sm rounded-lg p-2"
+                        >
+                          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center shadow-md">
+                            <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                          </div>
+                          <span className="text-xs text-gray-700 font-medium">{feature}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handleRazorpayPayment(currentPrice, isFirstTime ? 'First Time Special - 2 Hours' : 'Regular Package - 2 Hours')}
+                      className="w-full bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 hover:from-primary-700 hover:via-blue-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl flex items-center justify-center space-x-2 group"
+                    >
+                      <span className="text-lg">Buy Now - ₹{currentPrice}</span>
+                      <Zap className="h-5 w-5 group-hover:animate-bounce" />
+                    </button>
+
+                    {/* Payment methods */}
+                    <div className="mt-4 text-center">
+                      <p className="text-xs text-gray-500 mb-2">🔒 Secure payment via Razorpay</p>
+                      <div className="flex items-center justify-center space-x-4 text-xs text-gray-400">
+                        <span className="flex items-center space-x-1">
+                          <span>💳</span>
+                          <span>Card</span>
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center space-x-1">
+                          <span>📱</span>
+                          <span>UPI</span>
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center space-x-1">
+                          <span>👛</span>
+                          <span>Wallet</span>
+                        </span>
                       </div>
-                    )}
-
-                    <p className="text-gray-600 font-medium">2 Hours Practice Time</p>
-                    
-                    {!isFirstTime && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Regular price for subsequent purchases
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Features */}
-                  <div className="space-y-2 mb-6">
-                    {features.map((feature, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-2"
-                      >
-                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center">
-                          <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* CTA Button */}
-                  <button
-                    onClick={() => handleRazorpayPayment(currentPrice, isFirstTime ? 'First Time Special - 2 Hours' : 'Regular Package - 2 Hours')}
-                    className="w-full bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
-                  >
-                    <span>Buy Now - ₹{currentPrice}</span>
-                    <Zap className="h-4 w-4" />
-                  </button>
-
-                  {/* Payment methods */}
-                  <div className="mt-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Secure payment via Razorpay</p>
-                    <div className="flex items-center justify-center space-x-3 text-xs text-gray-400">
-                      <span>💳 Card</span>
-                      <span>•</span>
-                      <span>📱 UPI</span>
-                      <span>•</span>
-                      <span>👛 Wallet</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ <strong>Important:</strong> After payment, your time will be added automatically within 2-5 seconds. 
-                  Keep this page open during payment.
-                </p>
-              </div>
+              {/* Info Boxes */}
+              <div className="mt-6 space-y-4">
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl shadow-sm">
+                  <p className="text-sm text-yellow-800 flex items-start">
+                    <span className="text-lg mr-2">⚡</span>
+                    <span><strong>Instant Activation:</strong> Your time will be added automatically within 2-5 seconds after payment.</span>
+                  </p>
+                </div>
 
-              {/* Testing Button - Remove after testing */}
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800 mb-3">
-                  🧪 <strong>Testing Mode:</strong> Use ₹1 payment for testing (30 minutes)
-                </p>
-                <button
-                  onClick={() => handleRazorpayPayment(1, 'Testing Package - 30 Minutes')}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
-                >
-                  Test Payment - ₹1 (30 minutes)
-                </button>
+                {/* Testing Button */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
+                  <p className="text-sm text-blue-800 mb-3 flex items-start">
+                    <span className="text-lg mr-2">🧪</span>
+                    <span><strong>Testing Mode:</strong> Try with ₹1 payment (30 minutes)</span>
+                  </p>
+                  <button
+                    onClick={() => handleRazorpayPayment(1, 'Testing Package - 30 Minutes')}
+                    className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-sm shadow-md hover:shadow-lg"
+                  >
+                    Test Payment - ₹1 (30 minutes) 🚀
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Payment History */}
+            {/* Modern Payment History */}
             {userData?.payment_history && userData.payment_history.length > 0 && (
-              <div className="card mt-6">
+              <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
+                  <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-2 rounded-lg mr-3">
+                    <Calendar className="h-5 w-5 text-white" />
+                  </div>
                   Payment History
                 </h2>
                 <div className="space-y-3">
-                  {userData.payment_history.map((payment, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-semibold text-gray-900">{payment.package}</p>
-                        <p className="text-sm text-gray-600">{payment.date}</p>
+                  {userData.payment_history.slice().reverse().map((payment, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl hover:shadow-md transition-all duration-300 border border-gray-100"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${payment.amount === 0 ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-blue-400 to-indigo-500'}`}>
+                          {payment.amount === 0 ? (
+                            <Sparkles className="h-5 w-5 text-white" />
+                          ) : (
+                            <CreditCard className="h-5 w-5 text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{payment.package}</p>
+                          <p className="text-xs text-gray-500">{new Date(payment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">₹{payment.amount}</p>
+                        <p className="font-bold text-gray-900 text-lg">₹{payment.amount}</p>
                         <p className="text-sm text-gray-600">{formatTime(payment.seconds)}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
