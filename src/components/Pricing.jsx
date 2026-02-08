@@ -14,7 +14,7 @@ export default function Pricing() {
     const checkPurchaseHistory = async () => {
       if (user) {
         try {
-          const docId = user.email.replace('.', '_').replace('@', '_at_');
+          const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
           const userDoc = await getDoc(doc(db, 'users', docId));
           
           if (userDoc.exists()) {

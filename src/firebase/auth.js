@@ -22,7 +22,7 @@ export const signUpWithEmail = async (email, password, displayName) => {
     await updateProfile(user, { displayName });
     
     // Create user document in Firestore with 10 minutes free
-    const docId = email.replace('.', '_').replace('@', '_at_');
+    const docId = email.replace('@', '_at_').replace(/\./g, '_');
     await setDoc(doc(db, 'users', docId), {
       email: user.email,
       displayName: displayName,
@@ -62,7 +62,7 @@ export const signInWithGoogle = async () => {
     const user = result.user;
     
     // Check if user document exists
-    const docId = user.email.replace('.', '_').replace('@', '_at_');
+    const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
     const userDoc = await getDoc(doc(db, 'users', docId));
     
     // Create user document if doesn't exist (with 10 minutes free)

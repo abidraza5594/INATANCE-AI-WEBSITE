@@ -18,7 +18,7 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
 
-    const docId = user.email.replace('.', '_').replace('@', '_at_');
+    const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
     const userRef = doc(db, 'users', docId);
 
     // Real-time listener (Firebase onSnapshot)
