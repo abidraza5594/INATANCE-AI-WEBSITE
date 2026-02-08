@@ -181,7 +181,7 @@ export default function Hero() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative px-8 lg:px-0"
+            className="relative px-2 sm:px-4 lg:px-0"
           >
             {/* Floating icons - Adjusted positioning */}
             {floatingIcons.map((item, index) => (
@@ -190,61 +190,61 @@ export default function Hero() {
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 1 + item.delay, duration: 0.5 }}
-                className="absolute z-10 hidden sm:block"
+                className="absolute z-10 hidden lg:block"
                 style={{
                   top: `${20 + index * 25}%`,
-                  left: index % 2 === 0 ? '-8%' : 'auto',
-                  right: index % 2 === 1 ? '0%' : 'auto',
+                  left: index % 2 === 0 ? '-10%' : 'auto',
+                  right: index % 2 === 1 ? '-5%' : 'auto',
                 }}
               >
                 <motion.div
                   animate={{ y: [0, -20, 0] }}
                   transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
-                  className={`${item.color} bg-white/90 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/20`}
+                  className={`${item.color} bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/20`}
                 >
-                  <item.Icon className="h-6 w-6 sm:h-8 sm:w-8" />
+                  <item.Icon className="h-8 w-8" />
                 </motion.div>
               </motion.div>
             ))}
 
             {/* Main mockup */}
-            <div className="relative glass-card p-4 animate-float">
+            <div className="relative glass-card p-2 sm:p-4 animate-float">
               {/* Browser header */}
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-4 flex items-center space-x-2">
-                <div className="flex space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-3 sm:p-4 flex items-center space-x-2">
+                <div className="flex space-x-1.5 sm:space-x-2">
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse"></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                 </div>
                 <div className="flex-1 text-center">
-                  <span className="text-gray-400 text-sm font-bold tracking-wider">INSTANT INTERVIEW AI</span>
+                  <span className="text-gray-400 text-xs sm:text-sm font-bold tracking-wider">INSTANT INTERVIEW AI</span>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-b-2xl p-8 min-h-[450px] flex flex-col justify-between relative overflow-hidden">
+              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-b-2xl p-4 sm:p-6 lg:p-8 min-h-[450px] flex flex-col justify-between relative overflow-hidden">
                 {/* Animated background pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
                 </div>
 
-                <div className="space-y-6 relative z-10">
+                <div className="space-y-4 sm:space-y-6 relative z-10">
                   {/* Question */}
                   <motion.div
                     key={`q-${currentIndex}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-dark rounded-2xl p-6 border-l-4 border-blue-500"
+                    className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-blue-500"
                   >
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-xl animate-pulse-glow">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl animate-pulse-glow">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">Question</span>
+                      <span className="text-blue-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Question</span>
                     </div>
-                    <p className="text-white text-lg font-medium leading-relaxed min-h-[28px]">
+                    <p className="text-white text-sm sm:text-base lg:text-lg font-medium leading-relaxed min-h-[28px]">
                       {displayedQuestion}
                       {isTypingQuestion && <span className="animate-pulse text-blue-400">|</span>}
                     </p>
@@ -256,15 +256,15 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass-dark rounded-2xl p-6 border-l-4 border-green-500"
+                    className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-green-500"
                   >
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className={`bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-xl ${isTypingAnswer ? 'animate-pulse-glow' : ''}`}>
-                        <Mic className="w-5 h-5 text-white" />
+                    <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                      <div className={`bg-gradient-to-r from-green-500 to-emerald-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${isTypingAnswer ? 'animate-pulse-glow' : ''}`}>
+                        <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <span className="text-green-400 font-bold text-sm uppercase tracking-wider">Your Answer</span>
+                      <span className="text-green-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Your Answer</span>
                     </div>
-                    <p className="text-gray-300 text-base leading-relaxed min-h-[100px]">
+                    <p className="text-gray-300 text-sm sm:text-base leading-relaxed min-h-[100px]">
                       {displayedAnswer}
                       {isTypingAnswer && <span className="animate-pulse text-green-400">|</span>}
                     </p>
