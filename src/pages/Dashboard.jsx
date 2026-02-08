@@ -138,10 +138,10 @@ export default function Dashboard({ user }) {
           console.log('Payment ID:', response.razorpay_payment_id);
           console.log('Order ID:', response.razorpay_order_id);
           
-          // Call test-add-time endpoint to add time immediately
+          // Call test-add-time endpoint to add time immediately with amount
           try {
             alert('Payment successful! Adding time...');
-            const addTimeResponse = await fetch(`/api/test-add-time?email=${encodeURIComponent(user?.email)}`);
+            const addTimeResponse = await fetch(`/api/test-add-time?email=${encodeURIComponent(user?.email)}&amount=${amount}`);
             const result = await addTimeResponse.json();
             
             if (result.success) {

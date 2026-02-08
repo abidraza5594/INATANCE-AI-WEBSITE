@@ -41,11 +41,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get email from query parameter or use default
+    // Get email and amount from query parameters
     const email = req.query.email || 'abidraza8104@gmail.com';
+    const amount = parseInt(req.query.amount) || 1; // Amount in rupees (₹1, ₹300, ₹500)
     const docId = email.replace(/\./g, '_').replace('@', '_at_');
     
     console.log('Looking for user:', docId);
+    console.log('Payment amount:', amount);
     
     const userRef = db.collection('users').doc(docId);
 
@@ -67,21 +69,40 @@ export default async function handler(req, res) {
     const currentRemaining = currentData.remaining_seconds || 0;
     const currentTotal = currentData.total_purchased || 0;
 
-    // Add 30 minutes (1800 seconds)
-    const seconds = 1800;
+    // Calculate seconds based on amount
+    let seconds;
+    let packageName;
+    
+    if (amount === 1) {
+      // ₹1 = Testing (30 minutes)
+      seconds = 1800;
+      packageName = 'Testing Package';
+    } else if (amount === 300) {
+      // ₹300 = First Time (2 hours)
+      seconds = 7200;
+      packageName = 'First Time Special';
+    } else if (amount === 500) {
+      // ₹500 = Regular (2 hours)
+      seconds = 7200;
+      packageName = 'Regular Package';
+    } else {
+      // Default: 2 hours
+      seconds = 7200;
+      packageName = 'Custom Package';
+    }
 
-    console.log('Adding time:', seconds, 'seconds');
+    console.log('Adding time:', seconds, 'seconds for', packageName);
 
     await userRef.set({
       ...currentData,
       remaining_seconds: currentRemaining + seconds,
       total_purchased: currentTotal + seconds,
       payment_history: admin.firestore.FieldValue.arrayUnion({
-        amount: 1,
+        amount: amount,
         seconds: seconds,
-        package: 'Manual Test',
+        package: packageName,
         date: new Date().toISOString(),
-        payment_id: 'test_' + Date.now(),
+        payment_id: 'auto_' + Date.now(),
       }),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     }, { merge: true });
