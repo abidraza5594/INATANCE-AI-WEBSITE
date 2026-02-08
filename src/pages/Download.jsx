@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Download, Mic, CheckCircle, Monitor, Zap, Shield, Clock } from 'lucide-react';
 
 export default function DownloadPage() {
-  // Update this URL after uploading to GitHub Releases
-  const DOWNLOAD_URL = 'https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InterviewAI.exe';
+  // GitHub Release download URL - Updated with actual filename
+  const DOWNLOAD_URL = 'https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe';
   
   const features = [
     { icon: Zap, text: 'Real-time AI Answers', color: 'from-yellow-400 to-orange-500' },
@@ -70,7 +70,7 @@ export default function DownloadPage() {
           </motion.a>
           
           <p className="text-sm text-gray-500 mt-4">
-            Version 1.0.0 • Free Download • ~50MB
+            Version 1.0.0 • Free Download • 143MB
           </p>
         </motion.div>
 
@@ -135,14 +135,14 @@ export default function DownloadPage() {
               <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</span>
               <div>
                 <p className="font-semibold text-gray-900">Download the application</p>
-                <p className="text-sm text-gray-600">Click the download button above to get InterviewAI.exe</p>
+                <p className="text-sm text-gray-600">Click the download button above to get InstantInterview.exe (143MB)</p>
               </div>
             </li>
             <li className="flex items-start space-x-3">
               <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold">2</span>
               <div>
-                <p className="font-semibold text-gray-900">Run the installer</p>
-                <p className="text-sm text-gray-600">Double-click the downloaded file and follow the installation wizard</p>
+                <p className="font-semibold text-gray-900">Run the application</p>
+                <p className="text-sm text-gray-600">Double-click InstantInterview.exe to launch the app</p>
               </div>
             </li>
             <li className="flex items-start space-x-3">
