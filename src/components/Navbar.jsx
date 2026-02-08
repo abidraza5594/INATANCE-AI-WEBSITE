@@ -43,7 +43,7 @@ export default function Navbar({ user }) {
             <button onClick={() => scrollToSection('tech-stacks')} className="text-gray-700 hover:text-primary-600 transition">Tech Stacks</button>
             <button onClick={() => scrollToSection('shortcuts')} className="text-gray-700 hover:text-primary-600 transition">Shortcuts</button>
             <button onClick={() => scrollToSection('pricing')} className="text-gray-700 hover:text-primary-600 transition">Pricing</button>
-            <Link to="/download" className="text-gray-700 hover:text-primary-600 transition">Download App</Link>
+            <Link to="/download" className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg">Download App</Link>
             {user ? (
               <>
                 <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 transition">Dashboard</Link>
@@ -75,7 +75,7 @@ export default function Navbar({ user }) {
             <button onClick={() => scrollToSection('tech-stacks')} className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Tech Stacks</button>
             <button onClick={() => scrollToSection('shortcuts')} className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Shortcuts</button>
             <button onClick={() => scrollToSection('pricing')} className="block w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Pricing</button>
-            <Link to="/download" onClick={() => setIsOpen(false)} className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Download App</Link>
+            <Link to="/download" onClick={() => setIsOpen(false)} className="block mx-3 my-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg text-center shadow-md">Download App</Link>
             {user ? (
               <>
                 <Link to="/dashboard" onClick={() => setIsOpen(false)} className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded">Dashboard</Link>
