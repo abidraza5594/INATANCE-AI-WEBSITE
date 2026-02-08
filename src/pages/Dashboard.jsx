@@ -59,9 +59,14 @@ export default function Dashboard({ user }) {
       name: 'InterviewAI',
       description: packageType,
       image: '/logo.png',
+      payment_capture: 1, // Auto-capture payment immediately
       handler: function (response) {
-        alert('Payment successful! Time will be added in 2-5 seconds.');
+        alert('Payment successful! Time will be added in 2-5 seconds. Please wait...');
         console.log('Payment ID:', response.razorpay_payment_id);
+        // Refresh page after 3 seconds to show updated time
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
       },
       prefill: {
         name: user?.displayName || '',
