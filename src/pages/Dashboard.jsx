@@ -350,12 +350,12 @@ export default function Dashboard({ user }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Modern Profile Section + Payment History */}
+          {/* Modern Profile Section + Payment History (Desktop only) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="lg:col-span-1 space-y-6"
+            className="lg:col-span-1 space-y-6 hidden lg:block"
           >
             {/* Profile Card */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
@@ -395,7 +395,7 @@ export default function Dashboard({ user }) {
               </div>
             </div>
 
-            {/* Payment History - Moved here */}
+            {/* Payment History - Desktop */}
             {userData?.payment_history && userData.payment_history.length > 0 && (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
@@ -435,6 +435,51 @@ export default function Dashboard({ user }) {
                 </div>
               </div>
             )}
+          </motion.div>
+
+          {/* Profile Card - Mobile only */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="lg:hidden"
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <div className="bg-gradient-to-br from-primary-500 to-blue-500 p-2 rounded-lg mr-3">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                Profile
+              </h2>
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  {user?.photoURL ? (
+                    <img 
+                      src={user.photoURL} 
+                      alt="Profile" 
+                      className="h-20 w-20 rounded-full ring-4 ring-primary-100 shadow-lg"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-primary-400 to-blue-500 flex items-center justify-center ring-4 ring-primary-100 shadow-lg">
+                      <User className="h-10 w-10 text-white" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg">{user?.displayName}</p>
+                    <p className="text-sm text-gray-600">{user?.email}</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-600">Member since</p>
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {userData?.createdAt?.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) || 'Recently'}
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
           {/* Modern Payment Section */}
@@ -578,6 +623,54 @@ export default function Dashboard({ user }) {
             </div>
           </motion.div>
         </div>
+
+        {/* Payment History - Mobile only (at the end) */}
+        {userData?.payment_history && userData.payment_history.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="lg:hidden mt-8"
+          >
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <div className="bg-gradient-to-br from-indigo-500 to-purple-500 p-2 rounded-lg mr-3">
+                  <Calendar className="h-4 w-4 text-white" />
+                </div>
+                Payment History
+              </h2>
+              <div className="space-y-3">
+                {userData.payment_history.slice().reverse().map((payment, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex justify-between items-center p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl hover:shadow-md transition-all duration-300 border border-gray-100"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <div className={`p-1.5 rounded-lg ${payment.amount === 0 ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-blue-400 to-indigo-500'}`}>
+                        {payment.amount === 0 ? (
+                          <Sparkles className="h-4 w-4 text-white" />
+                        ) : (
+                          <CreditCard className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{payment.package}</p>
+                        <p className="text-xs text-gray-500">{new Date(payment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">₹{payment.amount}</p>
+                      <p className="text-xs text-gray-600">{formatTime(payment.seconds)}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
