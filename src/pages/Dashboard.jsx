@@ -222,48 +222,48 @@ export default function Dashboard({ user }) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       {/* Modern Header with Gradient */}
       <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-gradient-to-br from-primary-600 to-blue-600 p-2.5 rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                <Mic className="h-6 w-6 text-white" />
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
+              <div className="bg-gradient-to-br from-primary-600 to-blue-600 p-2 sm:p-2.5 rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                <Mic className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">InterviewAI</span>
+              <span className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">InterviewAI</span>
             </Link>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Modern App Status Indicator */}
               {appStatus === 'active' && (
-                <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                <div className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-50 border border-green-200 rounded-full">
                   <div className="relative">
-                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                    <div className="absolute inset-0 h-2.5 w-2.5 rounded-full bg-green-500 animate-ping"></div>
+                    <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <div className="absolute inset-0 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-green-500 animate-ping"></div>
                   </div>
-                  <span className="text-green-700 font-semibold text-sm">App Active</span>
+                  <span className="text-green-700 font-semibold text-xs sm:text-sm hidden sm:inline">App Active</span>
                 </div>
               )}
               {appStatus === 'idle' && (
-                <div className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-full">
-                  <div className="h-2.5 w-2.5 rounded-full bg-yellow-500 animate-pulse"></div>
-                  <span className="text-yellow-700 font-semibold text-sm">App Idle</span>
+                <div className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-yellow-50 border border-yellow-200 rounded-full">
+                  <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <span className="text-yellow-700 font-semibold text-xs sm:text-sm hidden sm:inline">App Idle</span>
                 </div>
               )}
               {appStatus === 'offline' && (
-                <div className="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full">
-                  <div className="h-2.5 w-2.5 rounded-full bg-gray-400"></div>
-                  <span className="text-gray-600 font-semibold text-sm">App Offline</span>
+                <div className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-50 border border-gray-200 rounded-full">
+                  <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-gray-400"></div>
+                  <span className="text-gray-600 font-semibold text-xs sm:text-sm hidden sm:inline">App Offline</span>
                 </div>
               )}
               
               {/* Sync Indicator */}
               {syncing && (
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="flex items-center space-x-2 text-sm text-gray-600 hidden sm:flex">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                 </div>
               )}
               
-              <button onClick={handleLogout} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
+              <button onClick={handleLogout} className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md">
                 <LogOut className="h-4 w-4" />
-                <span className="font-medium">Logout</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
