@@ -141,19 +141,31 @@ export default function DownloadPage() {
             <li className="flex items-start space-x-2 sm:space-x-3">
               <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">2</span>
               <div>
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">Windows Defender Warning (Important!)</p>
+                <p className="text-xs sm:text-sm text-gray-600 mb-2">If you see "Windows protected your PC" warning:</p>
+                <ul className="text-xs sm:text-sm text-gray-600 list-disc list-inside space-y-1 ml-2">
+                  <li>Click on "More info" link</li>
+                  <li>Then click "Run anyway" button</li>
+                  <li>This is normal for new applications without digital signature</li>
+                </ul>
+              </div>
+            </li>
+            <li className="flex items-start space-x-2 sm:space-x-3">
+              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">3</span>
+              <div>
                 <p className="font-semibold text-gray-900 text-sm sm:text-base">Run the application</p>
                 <p className="text-xs sm:text-sm text-gray-600">Double-click InstantInterview.exe to launch the app</p>
               </div>
             </li>
             <li className="flex items-start space-x-2 sm:space-x-3">
-              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">3</span>
+              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">4</span>
               <div>
                 <p className="font-semibold text-gray-900 text-sm sm:text-base">Login with your account</p>
                 <p className="text-xs sm:text-sm text-gray-600">Use your email to login (no password needed!)</p>
               </div>
             </li>
             <li className="flex items-start space-x-2 sm:space-x-3">
-              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">4</span>
+              <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">5</span>
               <div>
                 <p className="font-semibold text-gray-900 text-sm sm:text-base">Start practicing!</p>
                 <p className="text-xs sm:text-sm text-gray-600">Your 10 minutes free time is ready to use</p>
