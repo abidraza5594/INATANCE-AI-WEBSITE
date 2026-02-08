@@ -149,6 +149,12 @@ export default function Hero() {
                 <span>Start Free Trial</span>
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <Link to="/download" className="inline-flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-lg">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download App</span>
+              </Link>
               <a href="#how-it-works" className="btn-secondary inline-flex items-center justify-center text-lg group">
                 <Mic className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                 <span>See How It Works</span>
