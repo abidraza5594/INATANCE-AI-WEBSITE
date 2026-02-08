@@ -21,9 +21,21 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('=== WEBHOOK RECEIVED ===');
+    console.log('Headers:', req.headers);
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+
     // Verify Razorpay signature
     const signature = req.headers['x-razorpay-signature'];
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    console.log('Webhook Secret exists:', !!webhookSecret);
+    console.log('Signature exists:', !!signature);
+
+    if (!webhookSecret) {
+      console.error('RAZORPAY_WEBHOOK_SECRET not configured');
+      return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
 
     const body = JSON.stringify(req.body);
     const expectedSignature = crypto
@@ -33,12 +45,20 @@ export default async function handler(req, res) {
 
     if (signature !== expectedSignature) {
       console.error('Invalid signature');
+      console.error('Expected:', expectedSignature);
+      console.error('Received:', signature);
       return res.status(400).json({ error: 'Invalid signature' });
     }
+
+    console.log('Signature verified successfully');
 
     // Process payment
     const event = req.body.event;
     const payload = req.body.payload.payment.entity;
+
+    console.log('Event type:', event);
+    console.log('Payment ID:', payload.id);
+    console.log('Amount:', payload.amount);
 
     // Handle both captured and authorized payments
     if (event === 'payment.captured' || event === 'payment.authorized') {
@@ -47,6 +67,12 @@ export default async function handler(req, res) {
       // Try to get email and phone from multiple sources
       const userEmail = notes?.email || email;
       const userPhone = notes?.phone || contact;
+
+      console.log('Processing payment for:', {
+        email: userEmail,
+        phone: userPhone,
+        amount: amount
+      });
 
       console.log('Payment received:', {
         paymentId: payload.id,
