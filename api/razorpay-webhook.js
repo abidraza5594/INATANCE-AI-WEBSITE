@@ -41,12 +41,15 @@ export default async function handler(req, res) {
     const payload = req.body.payload.payment.entity;
 
     if (event === 'payment.captured') {
-      const { amount, notes } = payload;
-      const userEmail = notes?.email;
+      const { amount, notes, email } = payload;
+      
+      // Try to get email from multiple sources
+      const userEmail = notes?.email || email;
 
       if (!userEmail) {
-        console.error('No email in payment notes');
-        return res.status(400).json({ error: 'No email found' });
+        console.error('No email found in payment. Payment ID:', payload.id);
+        console.error('Payload:', JSON.stringify(payload));
+        return res.status(400).json({ error: 'No email found in payment' });
       }
 
       // Calculate seconds based on amount

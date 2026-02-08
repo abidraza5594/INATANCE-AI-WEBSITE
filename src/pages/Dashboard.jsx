@@ -62,6 +62,9 @@ export default function Dashboard({ user }) {
     ? 'https://rzp.io/rzp/7Q42vVa'  // First time ₹300
     : 'https://rzp.io/rzp/GrVtHchT'; // Regular ₹500
 
+  // Testing link (₹1 for 30 minutes)
+  const testingLink = 'https://rzp.io/rzp/0Jo7CKc';
+
   const features = [
     '2 Hours Practice Time',
     'Perfect for 1 Interview',
@@ -304,6 +307,19 @@ export default function Dashboard({ user }) {
                   ⚠️ <strong>Important:</strong> After payment, your time will be added automatically within 2-5 seconds. 
                   Keep this page open during payment.
                 </p>
+              </div>
+
+              {/* Testing Button - Remove after testing */}
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 mb-3">
+                  🧪 <strong>Testing Mode:</strong> Use ₹1 payment for testing (30 minutes)
+                </p>
+                <button
+                  onClick={() => handlePayment(testingLink)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
+                >
+                  Test Payment - ₹1 (30 minutes)
+                </button>
               </div>
             </div>
 
