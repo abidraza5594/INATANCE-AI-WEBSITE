@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Razorpay Checkout</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <script>
+    // This file is for reference only
+    // Integrate this code in your Dashboard.jsx and Pricing.jsx
+    
+    const handlePayment = (amount, userEmail, userName) => {
+      const options = {
+        key: 'YOUR_RAZORPAY_KEY_ID', // Get from Razorpay Dashboard → Settings → API Keys
+        amount: amount * 100, // Amount in paise (₹300 = 30000 paise)
+        currency: 'INR',
+        name: 'InterviewAI',
+        description: '2 Hours Practice Time',
+        image: '/logo.png', // Optional: Your logo
+        handler: function (response) {
+          alert('Payment successful! Time will be added in 2-5 seconds.');
+          console.log('Payment ID:', response.razorpay_payment_id);
+        },
+        prefill: {
+          email: userEmail,
+          name: userName,
+        },
+        notes: {
+          email: userEmail, // CRITICAL: Webhook uses this to identify user
+        },
+        theme: {
+          color: '#3B82F6',
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    };
+  </script>
+</body>
+</html>
