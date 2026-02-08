@@ -21,16 +21,22 @@ export const signUpWithEmail = async (email, password, displayName) => {
     // Update profile
     await updateProfile(user, { displayName });
     
-    // Create user document in Firestore
+    // Create user document in Firestore with 10 minutes free
     const docId = email.replace('.', '_').replace('@', '_at_');
     await setDoc(doc(db, 'users', docId), {
       email: user.email,
       displayName: displayName,
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
-      remaining_seconds: 0,
-      total_purchased: 0,
-      payment_history: []
+      remaining_seconds: 600, // 10 minutes free for new users
+      total_purchased: 600, // Count free time in total
+      payment_history: [{
+        amount: 0,
+        seconds: 600,
+        package: 'Welcome Bonus',
+        date: new Date().toISOString(),
+        payment_id: 'free_signup_' + Date.now(),
+      }]
     });
     
     return { success: true, user };
@@ -59,7 +65,7 @@ export const signInWithGoogle = async () => {
     const docId = user.email.replace('.', '_').replace('@', '_at_');
     const userDoc = await getDoc(doc(db, 'users', docId));
     
-    // Create user document if doesn't exist
+    // Create user document if doesn't exist (with 10 minutes free)
     if (!userDoc.exists()) {
       await setDoc(doc(db, 'users', docId), {
         email: user.email,
@@ -67,9 +73,15 @@ export const signInWithGoogle = async () => {
         photoURL: user.photoURL || '',
         phoneNumber: user.phoneNumber || '',
         createdAt: serverTimestamp(),
-        remaining_seconds: 0,
-        total_purchased: 0,
-        payment_history: []
+        remaining_seconds: 600, // 10 minutes free for new users
+        total_purchased: 600, // Count free time in total
+        payment_history: [{
+          amount: 0,
+          seconds: 600,
+          package: 'Welcome Bonus',
+          date: new Date().toISOString(),
+          payment_id: 'free_google_' + Date.now(),
+        }]
       });
     } else {
       // Update phone number if available
