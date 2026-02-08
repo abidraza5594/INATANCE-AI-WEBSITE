@@ -41,15 +41,67 @@ export default async function handler(req, res) {
     const payload = req.body.payload.payment.entity;
 
     if (event === 'payment.captured') {
-      const { amount, notes, email } = payload;
+      const { amount, notes, email, contact } = payload;
       
-      // Try to get email from multiple sources
+      // Try to get email and phone from multiple sources
       const userEmail = notes?.email || email;
+      const userPhone = notes?.phone || contact;
 
-      if (!userEmail) {
-        console.error('No email found in payment. Payment ID:', payload.id);
-        console.error('Payload:', JSON.stringify(payload));
-        return res.status(400).json({ error: 'No email found in payment' });
+      console.log('Payment received:', {
+        paymentId: payload.id,
+        amount,
+        email: userEmail,
+        phone: userPhone,
+      });
+
+      // Try to find user by email or phone
+      let userRef = null;
+      let docId = null;
+
+      if (userEmail) {
+        // Try email first
+        docId = userEmail.replace(/\./g, '_').replace('@', '_at_');
+        userRef = db.collection('users').doc(docId);
+        const userDoc = await userRef.get();
+        
+        if (userDoc.exists()) {
+          console.log('User found by email:', userEmail);
+        } else if (userPhone) {
+          // If email not found, try phone number
+          console.log('Email not found, trying phone:', userPhone);
+          const usersSnapshot = await db.collection('users')
+            .where('phoneNumber', '==', userPhone)
+            .limit(1)
+            .get();
+          
+          if (!usersSnapshot.empty) {
+            userRef = usersSnapshot.docs[0].ref;
+            docId = usersSnapshot.docs[0].id;
+            console.log('User found by phone:', userPhone);
+          }
+        }
+      } else if (userPhone) {
+        // Only phone available
+        console.log('Only phone available, searching:', userPhone);
+        const usersSnapshot = await db.collection('users')
+          .where('phoneNumber', '==', userPhone)
+          .limit(1)
+          .get();
+        
+        if (!usersSnapshot.empty) {
+          userRef = usersSnapshot.docs[0].ref;
+          docId = usersSnapshot.docs[0].id;
+          console.log('User found by phone:', userPhone);
+        }
+      }
+
+      if (!userRef || !docId) {
+        console.error('User not found. Email:', userEmail, 'Phone:', userPhone);
+        return res.status(400).json({ 
+          error: 'User not found',
+          email: userEmail,
+          phone: userPhone 
+        });
       }
 
       // Calculate seconds based on amount
@@ -74,10 +126,6 @@ export default async function handler(req, res) {
         packageName = 'Custom Package';
       }
 
-      // Convert email to Firestore document ID
-      const docId = userEmail.replace('.', '_').replace('@', '_at_');
-      const userRef = db.collection('users').doc(docId);
-
       // Get current user data
       const userDoc = await userRef.get();
       const currentData = userDoc.exists ? userDoc.data() : {};
@@ -90,6 +138,7 @@ export default async function handler(req, res) {
         ...currentData,
         remaining_seconds: currentRemaining + seconds,
         total_purchased: currentTotal + seconds,
+        phoneNumber: userPhone || currentData.phoneNumber, // Save phone if available
         payment_history: admin.firestore.FieldValue.arrayUnion({
           amount: amount / 100, // Convert paise to rupees
           seconds: seconds,
@@ -100,8 +149,13 @@ export default async function handler(req, res) {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       }, { merge: true });
 
-      console.log(`Payment processed for ${userEmail}: +${seconds}s`);
-      return res.status(200).json({ success: true, message: 'Payment processed' });
+      console.log(`Payment processed for user ${docId}: +${seconds}s`);
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Payment processed',
+        user: docId,
+        seconds: seconds
+      });
     }
 
     return res.status(200).json({ success: true, message: 'Event received' });

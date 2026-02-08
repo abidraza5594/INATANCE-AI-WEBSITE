@@ -65,11 +65,20 @@ export const signInWithGoogle = async () => {
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL || '',
+        phoneNumber: user.phoneNumber || '',
         createdAt: serverTimestamp(),
         remaining_seconds: 0,
         total_purchased: 0,
         payment_history: []
       });
+    } else {
+      // Update phone number if available
+      const currentData = userDoc.data();
+      if (user.phoneNumber && !currentData.phoneNumber) {
+        await setDoc(doc(db, 'users', docId), {
+          phoneNumber: user.phoneNumber
+        }, { merge: true });
+      }
     }
     
     return { success: true, user };
