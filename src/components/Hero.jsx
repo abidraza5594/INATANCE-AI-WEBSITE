@@ -193,7 +193,7 @@ export default function Hero() {
                 className="absolute z-10 hidden sm:block"
                 style={{
                   top: `${20 + index * 25}%`,
-                  left: index % 2 === 0 ? '0%' : 'auto',
+                  left: index % 2 === 0 ? '-8%' : 'auto',
                   right: index % 2 === 1 ? '0%' : 'auto',
                 }}
               >
