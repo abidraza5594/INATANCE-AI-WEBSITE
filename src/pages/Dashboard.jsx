@@ -45,45 +45,69 @@ export default function Dashboard({ user }) {
     window.open(link, '_blank');
   };
 
-  const handleRazorpayPayment = (amount, packageType) => {
+  const handleRazorpayPayment = async (amount, packageType) => {
     // Check if Razorpay is loaded
     if (!window.Razorpay) {
       alert('Payment gateway is loading. Please try again in a moment.');
       return;
     }
 
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_YOUR_KEY_ID',
-      amount: amount * 100, // Amount in paise
-      currency: 'INR',
-      name: 'InterviewAI',
-      description: packageType,
-      image: '/logo.png',
-      payment_capture: 1, // Auto-capture payment immediately
-      handler: function (response) {
-        alert('Payment successful! Time will be added in 2-5 seconds. Please wait...');
-        console.log('Payment ID:', response.razorpay_payment_id);
-        // Refresh page after 3 seconds to show updated time
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-      },
-      prefill: {
-        name: user?.displayName || '',
-        email: user?.email || '',
-        contact: userData?.phoneNumber || '',
-      },
-      notes: {
-        email: user?.email,
-        phone: userData?.phoneNumber || '',
-      },
-      theme: {
-        color: '#3B82F6',
-      },
-    };
+    try {
+      // Create order on backend first (this ensures auto-capture)
+      const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount * 100, // Amount in paise
+          email: user?.email,
+          phone: userData?.phoneNumber || '',
+        }),
+      });
 
-    const razorpay = new window.Razorpay(options);
-    razorpay.open();
+      if (!response.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const order = await response.json();
+      console.log('Order created:', order.id);
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_SDa0tRbVfVpnhQ',
+        amount: order.amount,
+        currency: order.currency,
+        name: 'InterviewAI',
+        description: packageType,
+        order_id: order.id, // Use order ID from backend
+        image: '/logo.png',
+        handler: function (response) {
+          alert('Payment successful! Time will be added in 2-5 seconds. Please wait...');
+          console.log('Payment ID:', response.razorpay_payment_id);
+          console.log('Order ID:', response.razorpay_order_id);
+          // Refresh page after 3 seconds to show updated time
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        },
+        prefill: {
+          name: user?.displayName || '',
+          email: user?.email || '',
+          contact: userData?.phoneNumber || '',
+        },
+        notes: {
+          email: user?.email,
+          phone: userData?.phoneNumber || '',
+        },
+        theme: {
+          color: '#3B82F6',
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment initialization failed. Please try again.');
+    }
   };
 
   if (loading) {

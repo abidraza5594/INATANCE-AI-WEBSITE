@@ -40,7 +40,8 @@ export default async function handler(req, res) {
     const event = req.body.event;
     const payload = req.body.payload.payment.entity;
 
-    if (event === 'payment.captured') {
+    // Handle both captured and authorized payments
+    if (event === 'payment.captured' || event === 'payment.authorized') {
       const { amount, notes, email, contact } = payload;
       
       // Try to get email and phone from multiple sources
