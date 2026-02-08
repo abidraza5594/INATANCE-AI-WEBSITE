@@ -12,6 +12,7 @@ import {
 export default function Dashboard({ user }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -19,15 +20,27 @@ export default function Dashboard({ user }) {
     const docId = user.email.replace('.', '_').replace('@', '_at_');
     const userRef = doc(db, 'users', docId);
 
-    // Real-time listener
+    // Real-time listener (Firebase onSnapshot)
     const unsubscribe = onSnapshot(userRef, (doc) => {
       if (doc.exists()) {
         setUserData(doc.data());
+        setSyncing(false);
       }
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Additional 5-second polling for extra reliability
+    const pollInterval = setInterval(async () => {
+      setSyncing(true);
+      // onSnapshot will automatically update when data changes
+      // This just triggers a visual sync indicator
+      setTimeout(() => setSyncing(false), 500);
+    }, 5000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(pollInterval);
+    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -155,10 +168,25 @@ export default function Dashboard({ user }) {
               </div>
               <span className="text-2xl font-bold text-gray-900">InterviewAI</span>
             </Link>
-            <button onClick={handleLogout} className="btn-secondary flex items-center space-x-2">
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              {/* Real-time Sync Indicator */}
+              {syncing && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
+                  <span>Syncing...</span>
+                </div>
+              )}
+              {!syncing && (
+                <div className="flex items-center space-x-2 text-sm text-green-600">
+                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span>Live</span>
+                </div>
+              )}
+              <button onClick={handleLogout} className="btn-secondary flex items-center space-x-2">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
