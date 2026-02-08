@@ -13,6 +13,7 @@ export default function Dashboard({ user }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [appStatus, setAppStatus] = useState('offline'); // 'active', 'idle', 'offline'
 
   useEffect(() => {
     if (!user) return;
@@ -23,8 +24,26 @@ export default function Dashboard({ user }) {
     // Real-time listener (Firebase onSnapshot)
     const unsubscribe = onSnapshot(userRef, (doc) => {
       if (doc.exists()) {
-        setUserData(doc.data());
+        const data = doc.data();
+        setUserData(data);
         setSyncing(false);
+        
+        // Check app status based on last_active timestamp
+        if (data.last_active) {
+          const lastActive = new Date(data.last_active);
+          const now = new Date();
+          const diffSeconds = (now - lastActive) / 1000;
+          
+          if (diffSeconds < 10) {
+            setAppStatus('active'); // Active in last 10 seconds
+          } else if (diffSeconds < 60) {
+            setAppStatus('idle'); // Idle (last active within 1 minute)
+          } else {
+            setAppStatus('offline'); // Offline (no activity for 1+ minute)
+          }
+        } else {
+          setAppStatus('offline');
+        }
       }
       setLoading(false);
     });
@@ -176,19 +195,37 @@ export default function Dashboard({ user }) {
               <span className="text-2xl font-bold text-gray-900">InterviewAI</span>
             </Link>
             <div className="flex items-center space-x-4">
-              {/* Real-time Sync Indicator */}
+              {/* App Status Indicator */}
+              {appStatus === 'active' && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="relative">
+                    <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
+                    <div className="absolute inset-0 h-3 w-3 rounded-full bg-green-500 animate-ping"></div>
+                  </div>
+                  <span className="text-green-600 font-medium">🎯 App Active</span>
+                </div>
+              )}
+              {appStatus === 'idle' && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="h-3 w-3 rounded-full bg-yellow-500 animate-pulse"></div>
+                  <span className="text-yellow-600 font-medium">⏸️ App Idle</span>
+                </div>
+              )}
+              {appStatus === 'offline' && (
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="h-3 w-3 rounded-full bg-gray-400"></div>
+                  <span className="text-gray-500 font-medium">⚪ App Offline</span>
+                </div>
+              )}
+              
+              {/* Sync Indicator */}
               {syncing && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                   <span>Syncing...</span>
                 </div>
               )}
-              {!syncing && (
-                <div className="flex items-center space-x-2 text-sm text-green-600">
-                  <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span>Live</span>
-                </div>
-              )}
+              
               <button onClick={handleLogout} className="btn-secondary flex items-center space-x-2">
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
