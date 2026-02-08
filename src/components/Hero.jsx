@@ -181,33 +181,31 @@ export default function Hero() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative overflow-hidden"
+            className="relative px-8 lg:px-0"
           >
-            {/* Floating icons - Hidden on mobile, visible on desktop */}
-            <div className="hidden lg:block">
-              {floatingIcons.map((item, index) => (
+            {/* Floating icons - Adjusted positioning */}
+            {floatingIcons.map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1 + item.delay, duration: 0.5 }}
+                className="absolute z-10 hidden sm:block"
+                style={{
+                  top: `${20 + index * 25}%`,
+                  left: index % 2 === 0 ? '0%' : 'auto',
+                  right: index % 2 === 1 ? '0%' : 'auto',
+                }}
+              >
                 <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1 + item.delay, duration: 0.5 }}
-                  className="absolute z-10"
-                  style={{
-                    top: `${20 + index * 25}%`,
-                    left: index % 2 === 0 ? '-10%' : 'auto',
-                    right: index % 2 === 1 ? '-10%' : 'auto',
-                  }}
+                  animate={{ y: [0, -20, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
+                  className={`${item.color} bg-white/90 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/20`}
                 >
-                  <motion.div
-                    animate={{ y: [0, -20, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
-                    className={`${item.color} bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/20`}
-                  >
-                    <item.Icon className="h-8 w-8" />
-                  </motion.div>
+                  <item.Icon className="h-6 w-6 sm:h-8 sm:w-8" />
                 </motion.div>
-              ))}
-            </div>
+              </motion.div>
+            ))}
 
             {/* Main mockup */}
             <div className="relative glass-card p-4 animate-float">

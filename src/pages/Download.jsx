@@ -63,13 +63,13 @@ export default function DownloadPage() {
             href={DOWNLOAD_URL}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 hover:from-primary-700 hover:via-blue-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 text-lg"
+            className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 hover:from-primary-700 hover:via-blue-700 hover:to-purple-700 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 text-base sm:text-lg"
           >
-            <Download className="h-6 w-6" />
+            <Download className="h-5 w-5 sm:h-6 sm:w-6" />
             <span>Download for Windows</span>
           </motion.a>
           
-          <p className="text-sm text-gray-500 mt-4">
+          <p className="text-xs sm:text-sm text-gray-500 mt-4">
             Version 1.0.0 • Free Download • 143MB
           </p>
         </motion.div>
