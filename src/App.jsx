@@ -7,6 +7,7 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Download from './pages/Download';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -35,6 +36,7 @@ function App() {
         <Route path="/" element={<Home user={user} />} />
         <Route path="/about" element={<About user={user} />} />
         <Route path="/contact" element={<Contact user={user} />} />
+        <Route path="/download" element={<Download />} />
         <Route 
           path="/login" 
           element={user ? <Navigate to="/dashboard" /> : <Login />} 
