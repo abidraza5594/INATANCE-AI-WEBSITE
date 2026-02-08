@@ -45,6 +45,42 @@ export default function Dashboard({ user }) {
     window.open(link, '_blank');
   };
 
+  const handleRazorpayPayment = (amount, packageType) => {
+    // Check if Razorpay is loaded
+    if (!window.Razorpay) {
+      alert('Payment gateway is loading. Please try again in a moment.');
+      return;
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_YOUR_KEY_ID',
+      amount: amount * 100, // Amount in paise
+      currency: 'INR',
+      name: 'InterviewAI',
+      description: packageType,
+      image: '/logo.png',
+      handler: function (response) {
+        alert('Payment successful! Time will be added in 2-5 seconds.');
+        console.log('Payment ID:', response.razorpay_payment_id);
+      },
+      prefill: {
+        name: user?.displayName || '',
+        email: user?.email || '',
+        contact: userData?.phoneNumber || '',
+      },
+      notes: {
+        email: user?.email,
+        phone: userData?.phoneNumber || '',
+      },
+      theme: {
+        color: '#3B82F6',
+      },
+    };
+
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -281,7 +317,7 @@ export default function Dashboard({ user }) {
 
                   {/* CTA Button */}
                   <button
-                    onClick={() => handlePayment(paymentLink)}
+                    onClick={() => handleRazorpayPayment(currentPrice, isFirstTime ? 'First Time Special - 2 Hours' : 'Regular Package - 2 Hours')}
                     className="w-full bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center space-x-2"
                   >
                     <span>Buy Now - ₹{currentPrice}</span>
@@ -315,7 +351,7 @@ export default function Dashboard({ user }) {
                   🧪 <strong>Testing Mode:</strong> Use ₹1 payment for testing (30 minutes)
                 </p>
                 <button
-                  onClick={() => handlePayment(testingLink)}
+                  onClick={() => handleRazorpayPayment(1, 'Testing Package - 30 Minutes')}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm"
                 >
                   Test Payment - ₹1 (30 minutes)
