@@ -49,8 +49,27 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No email found' });
       }
 
-      // Calculate seconds (2 hours = 7200 seconds)
-      const seconds = 7200;
+      // Calculate seconds based on amount
+      let seconds;
+      let packageName;
+      
+      if (amount === 100) {
+        // ₹1 = Testing (30 minutes)
+        seconds = 1800;
+        packageName = 'Testing Package';
+      } else if (amount === 30000) {
+        // ₹300 = First Time (2 hours)
+        seconds = 7200;
+        packageName = 'First Time Special';
+      } else if (amount === 50000) {
+        // ₹500 = Regular (2 hours)
+        seconds = 7200;
+        packageName = 'Regular Package';
+      } else {
+        // Default: 2 hours
+        seconds = 7200;
+        packageName = 'Custom Package';
+      }
 
       // Convert email to Firestore document ID
       const docId = userEmail.replace('.', '_').replace('@', '_at_');
@@ -71,7 +90,7 @@ export default async function handler(req, res) {
         payment_history: admin.firestore.FieldValue.arrayUnion({
           amount: amount / 100, // Convert paise to rupees
           seconds: seconds,
-          package: amount === 30000 ? 'First Time Special' : 'Regular',
+          package: packageName,
           date: new Date().toISOString(),
           payment_id: payload.id,
         }),
