@@ -134,14 +134,34 @@ export default function Dashboard({ user }) {
         description: packageType,
         order_id: order.id, // Use order ID from backend
         image: '/logo.png',
-        handler: function (response) {
-          alert('Payment successful! Time will be added in 2-5 seconds. Please wait...');
+        handler: async function (response) {
           console.log('Payment ID:', response.razorpay_payment_id);
           console.log('Order ID:', response.razorpay_order_id);
-          // Refresh page after 3 seconds to show updated time
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
+          
+          // Call test-add-time endpoint to add time immediately
+          try {
+            alert('Payment successful! Adding time...');
+            const addTimeResponse = await fetch(`/api/test-add-time?email=${encodeURIComponent(user?.email)}`);
+            const result = await addTimeResponse.json();
+            
+            if (result.success) {
+              alert('Time added successfully! Refreshing...');
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else {
+              alert('Payment successful but time addition failed. Please refresh manually.');
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            }
+          } catch (error) {
+            console.error('Error adding time:', error);
+            alert('Payment successful! Please refresh the page to see updated time.');
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          }
         },
         prefill: {
           name: user?.displayName || '',

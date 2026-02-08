@@ -41,8 +41,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Test endpoint to manually add time
-    const email = 'abidraza8104@gmail.com';
+    // Get email from query parameter or use default
+    const email = req.query.email || 'abidraza8104@gmail.com';
     const docId = email.replace(/\./g, '_').replace('@', '_at_');
     
     console.log('Looking for user:', docId);
