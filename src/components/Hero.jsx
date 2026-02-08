@@ -145,18 +145,18 @@ export default function Hero() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 mb-12">
-              <Link to="/signup" className="btn-primary group inline-flex items-center justify-center space-x-2 text-base px-5 py-2.5">
+              <Link to="/signup" className="btn-primary group inline-flex items-center justify-center space-x-1.5 text-sm px-4 py-2.5 sm:w-auto whitespace-nowrap">
                 <span>Start Free Trial</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/download" className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-base">
+              <Link to="/download" className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:w-auto whitespace-nowrap">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 <span>Download App</span>
               </Link>
-              <a href="#how-it-works" className="btn-secondary inline-flex items-center justify-center text-base group px-5 py-2.5">
-                <Mic className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+              <a href="#how-it-works" className="btn-secondary inline-flex items-center justify-center text-sm group px-4 py-2.5 sm:w-auto whitespace-nowrap space-x-1.5">
+                <Mic className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>See How It Works</span>
               </a>
             </div>
