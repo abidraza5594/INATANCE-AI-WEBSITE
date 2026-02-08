@@ -51,7 +51,14 @@ export default function Dashboard({ user }) {
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours}h ${minutes}m`;
+    const secs = seconds % 60;
+    
+    // Format as HH:MM:SS
+    const h = String(hours).padStart(2, '0');
+    const m = String(minutes).padStart(2, '0');
+    const s = String(secs).padStart(2, '0');
+    
+    return `${h}:${m}:${s}`;
   };
 
   const handlePayment = (link) => {
