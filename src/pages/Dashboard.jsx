@@ -23,8 +23,16 @@ export default function Dashboard({ user }) {
 
     // Real-time listener (Firebase onSnapshot)
     const unsubscribe = onSnapshot(userRef, (doc) => {
+      console.log('[DASHBOARD] Firebase update received!', new Date().toISOString());
+      
       if (doc.exists()) {
         const data = doc.data();
+        console.log('[DASHBOARD] Data:', {
+          remaining_seconds: data.remaining_seconds,
+          last_active: data.last_active,
+          is_using_app: data.is_using_app
+        });
+        
         setUserData(data);
         setSyncing(false);
         
@@ -34,18 +42,26 @@ export default function Dashboard({ user }) {
           const now = new Date();
           const diffSeconds = (now - lastActive) / 1000;
           
+          console.log('[DASHBOARD] Time diff:', diffSeconds, 'seconds');
+          
           if (diffSeconds < 10) {
+            console.log('[DASHBOARD] Status: ACTIVE');
             setAppStatus('active'); // Active in last 10 seconds
           } else if (diffSeconds < 60) {
+            console.log('[DASHBOARD] Status: IDLE');
             setAppStatus('idle'); // Idle (last active within 1 minute)
           } else {
+            console.log('[DASHBOARD] Status: OFFLINE');
             setAppStatus('offline'); // Offline (no activity for 1+ minute)
           }
         } else {
+          console.log('[DASHBOARD] No last_active - Status: OFFLINE');
           setAppStatus('offline');
         }
       }
       setLoading(false);
+    }, (error) => {
+      console.error('[DASHBOARD] onSnapshot error:', error);
     });
 
     // Additional 5-second polling for extra reliability
