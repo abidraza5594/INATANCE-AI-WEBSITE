@@ -29,7 +29,7 @@ export const signUpWithEmail = async (email, password, displayName) => {
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
       remaining_seconds: 600, // 10 minutes free for new users
-      total_purchased: 600, // Count free time in total
+      total_purchased: 0, // Don't count free time - only actual purchases
       payment_history: [{
         amount: 0,
         seconds: 600,
@@ -74,7 +74,7 @@ export const signInWithGoogle = async () => {
         phoneNumber: user.phoneNumber || '',
         createdAt: serverTimestamp(),
         remaining_seconds: 600, // 10 minutes free for new users
-        total_purchased: 600, // Count free time in total
+        total_purchased: 0, // Don't count free time - only actual purchases
         payment_history: [{
           amount: 0,
           seconds: 600,
