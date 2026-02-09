@@ -68,31 +68,35 @@ const inputModes = [
 
 export default function HowItWorks() {
   return (
-    <div id="how-it-works" className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="how-it-works" className="py-24 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-b from-purple-50 to-transparent opacity-60"></div>
+      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-t from-blue-50 to-transparent opacity-60"></div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         {/* Main Steps */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center space-x-2 bg-white/60 backdrop-blur-md border border-gray-200 text-primary-700 px-6 py-2 rounded-full mb-6 shadow-sm">
               <Zap className="h-4 w-4" />
-              <span className="text-sm font-semibold">Simple 4-Step Process</span>
+              <span className="text-sm font-bold tracking-wide uppercase">Simple 4-Step Process</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              How It Works
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900">How It Works</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Get started in minutes and ace your next interview with AI assistance
             </p>
           </motion.div>
         </div>
 
         <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
             {steps.map((step, index) => (
               <div key={index} className="relative">
                 <motion.div
@@ -100,36 +104,31 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group"
+                  className="h-full"
                 >
-                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 h-full">
-                    {/* Icon */}
-                    <div className={`w-16 h-16 bg-gradient-to-br ${step.color} rounded-2xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                  <div className="glass-card h-full hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 border border-white/60">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mb-6 mx-auto shadow-lg`}>
                       <step.icon className="h-8 w-8 text-white" />
                     </div>
-                    
+
                     <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">{step.title}</h3>
-                    <p className="text-gray-600 mb-4 text-sm leading-relaxed text-center">{step.description}</p>
-                    
-                    <ul className="space-y-2">
+                    <p className="text-gray-600 mb-6 text-sm leading-relaxed text-center font-medium">{step.description}</p>
+
+                    <ul className="space-y-3">
                       {step.features.map((feature, fIndex) => (
-                        <li key={fIndex} className="flex items-start text-sm text-gray-700">
-                          <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
+                        <li key={fIndex} className="flex items-center text-sm text-gray-600 bg-gray-50/50 rounded-lg p-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
                   </div>
                 </motion.div>
-                
+
                 {/* Arrow - Between cards in the gap */}
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:flex absolute top-1/2 -right-6 transform -translate-y-1/2 z-20 items-center justify-center">
-                    <div className="bg-white rounded-full p-2 shadow-md">
-                      <ArrowRight className="w-6 h-6 text-primary-500" strokeWidth={3} />
-                    </div>
+                  <div className="hidden lg:flex absolute top-1/2 -right-4 transform -translate-y-1/2 z-20 items-center justify-center text-gray-300">
+                    <ArrowRight className="w-8 h-8 opacity-40" />
                   </div>
                 )}
               </div>
@@ -139,17 +138,17 @@ export default function HowItWorks() {
 
         {/* Input Modes Section */}
         <div className="mt-20">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h3 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">
                 3 Powerful Input Modes
               </h3>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 Switch between modes instantly based on your interview situation
               </p>
             </motion.div>
@@ -159,37 +158,32 @@ export default function HowItWorks() {
             {inputModes.map((mode, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="relative group"
+                className="relative group h-full"
               >
-                <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 h-full">
-                  {/* Gradient Background */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${mode.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity`}></div>
-                  
-                  <div className="relative z-10">
-                    <div className="text-center mb-6">
-                      <div className="text-6xl mb-4">{mode.icon}</div>
-                      <h4 className="text-2xl font-bold text-gray-900 mb-2">{mode.mode}</h4>
-                      <div className={`inline-block bg-gradient-to-r ${mode.gradient} text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md`}>
+                <div className="glass-card h-full hover:shadow-2xl transition-all duration-500 border border-white/60 overflow-hidden">
+                  <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${mode.gradient}`}></div>
+
+                  <div className="relative z-10 pt-4">
+                    <div className="text-center mb-8">
+                      <div className="text-7xl mb-6 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-lg">{mode.icon}</div>
+                      <h4 className="text-2xl font-black text-gray-900 mb-3">{mode.mode}</h4>
+                      <div className={`inline-block bg-gradient-to-r ${mode.gradient} text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-md`}>
                         {mode.trigger}
                       </div>
                     </div>
-                    
-                    <p className="text-gray-600 mb-6 text-center leading-relaxed">{mode.description}</p>
-                    
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4">
-                      <p className="text-sm font-mono text-gray-800 text-center leading-relaxed">{mode.howTo}</p>
+
+                    <p className="text-gray-600 mb-8 text-center text-lg leading-relaxed">{mode.description}</p>
+
+                    <div className="bg-gray-50/80 rounded-xl p-5 mb-6 border border-gray-100">
+                      <p className="text-sm font-bold text-gray-700 text-center">{mode.howTo}</p>
                     </div>
-                    
-                    <div className="flex items-center justify-center text-sm text-gray-600 bg-green-50 rounded-lg p-3">
-                      <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-medium">Best for: {mode.bestFor}</span>
+
+                    <div className="flex items-center justify-center text-sm font-semibold text-green-700 bg-green-50/80 rounded-xl p-3 border border-green-100">
+                      <span>Best for: {mode.bestFor}</span>
                     </div>
                   </div>
                 </div>

@@ -18,29 +18,32 @@ const techStacks = [
 
 export default function TechStacks() {
   return (
-    <div id="tech-stacks" className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+    <div id="tech-stacks" className="py-24 relative overflow-hidden">
+      {/* Background with mesh gradient */}
+      <div className="absolute inset-0 mesh-gradient-light opacity-50"></div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+        <div className="text-center mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-6 border border-blue-100 shadow-sm">
               <Code2 className="h-4 w-4" />
-              <span className="text-sm font-semibold">12+ Technologies Supported</span>
+              <span className="text-sm font-bold uppercase tracking-wider">12+ Technologies</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Every Tech Stack Covered
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+              Every Tech Stack <span className="text-primary-600">Covered</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Switch between technology profiles instantly with Caps Lock double-tap. AI answers from that technology's perspective.
             </p>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16">
           {techStacks.map((tech, index) => (
             <motion.div
               key={index}
@@ -51,42 +54,42 @@ export default function TechStacks() {
               whileHover={{ scale: 1.05, y: -5 }}
               className="relative group"
             >
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all">
-                <div className={`absolute inset-0 bg-gradient-to-br ${tech.color} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity`}></div>
-                <div className="text-center relative z-10">
-                  <div className="text-5xl mb-3">{tech.icon}</div>
-                  <h3 className="text-lg font-bold mb-2">{tech.name}</h3>
-                  <p className="text-sm text-gray-400">{tech.description}</p>
-                </div>
+              <div className="glass-card h-full p-6 text-center hover:shadow-xl transition-all duration-300 border border-white/60">
+                <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">{tech.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{tech.name}</h3>
+                <p className="text-sm text-gray-500 font-medium">{tech.description}</p>
+
+                {/* Hover Glow */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${tech.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300 pointer-events-none`}></div>
               </div>
             </motion.div>
           ))}
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20"
+          className="glass-card p-10 border border-primary-100 bg-white/60"
         >
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold text-primary-400 mb-2">12+</div>
-              <div className="text-gray-300">Tech Stacks</div>
+          <div className="grid md:grid-cols-3 gap-10 text-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
+            <div className="p-4">
+              <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-600 mb-2">12+</div>
+              <div className="text-gray-600 font-bold uppercase tracking-wide">Tech Stacks</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary-400 mb-2">Instant</div>
-              <div className="text-gray-300">Profile Switching</div>
+            <div className="p-4">
+              <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">Instant</div>
+              <div className="text-gray-600 font-bold uppercase tracking-wide">Profile Switching</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-primary-400 mb-2">Smart</div>
-              <div className="text-gray-300">Cross-Tech Awareness</div>
+            <div className="p-4">
+              <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500 mb-2">Smart</div>
+              <div className="text-gray-600 font-bold uppercase tracking-wide">Cross-Tech Awareness</div>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-white/20">
-            <p className="text-center text-gray-300">
-              <span className="font-semibold text-white">Pro Tip:</span> React developers know JavaScript, Full-Stack knows both frontend and backend. 
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <p className="text-center text-gray-600 text-lg">
+              <span className="font-bold text-primary-600">Pro Tip:</span> React developers know JavaScript, Full-Stack knows both frontend and backend.
               AI understands technology relationships and answers accordingly!
             </p>
           </div>
