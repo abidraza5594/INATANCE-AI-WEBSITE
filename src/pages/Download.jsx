@@ -168,7 +168,7 @@ export default function DownloadPage() {
               <span className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-primary-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">5</span>
               <div>
                 <p className="font-semibold text-gray-900 text-sm sm:text-base">Start practicing!</p>
-                <p className="text-xs sm:text-sm text-gray-600">Your 10 minutes free time is ready to use</p>
+                <p className="text-xs sm:text-sm text-gray-600">Your 2 hours free time is ready - complete 1 full interview!</p>
               </div>
             </li>
           </ol>

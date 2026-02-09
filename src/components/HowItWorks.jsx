@@ -6,9 +6,9 @@ const steps = [
     icon: Download,
     number: '1',
     title: 'Download & Install',
-    description: 'Download the Windows app, create your account, and get 10 minutes free trial instantly.',
+    description: 'Download the Windows app, create your account, and get 1 FREE interview (2 hours) instantly.',
     color: 'from-blue-500 to-blue-600',
-    features: ['One-click installation', 'Email signup', '10 min free trial', 'Instant activation']
+    features: ['One-click installation', 'Email signup', '1 free interview', 'Instant activation']
   },
   {
     icon: Play,

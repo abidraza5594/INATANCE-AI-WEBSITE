@@ -45,7 +45,7 @@ const features = [
   {
     icon: Clock,
     title: 'Flexible Time System',
-    description: 'Pay per interview - 2 hours each. First time ₹300, regular ₹500. 10 minutes free trial to test all features.'
+    description: 'Pay per interview - 2 hours each. First time ₹300, regular ₹500. Get 1 FREE interview (2 hours) to test all features!'
   }
 ];
 

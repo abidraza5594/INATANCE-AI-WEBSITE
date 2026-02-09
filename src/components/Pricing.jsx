@@ -206,7 +206,7 @@ export default function Pricing() {
                 <div className="text-sm text-gray-600">Activation</div>
               </div>
               <div>
-                <div className="text-3xl font-black gradient-text mb-2">10 Min</div>
+                <div className="text-3xl font-black gradient-text mb-2">2 Hours</div>
                 <div className="text-sm text-gray-600">Free Trial</div>
               </div>
             </div>
