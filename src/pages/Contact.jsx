@@ -144,9 +144,9 @@ export default function Contact({ user }) {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Social Media</h3>
                 <p className="text-gray-600 mb-4">Connect with us on social platforms</p>
                 <div className="space-y-2">
-                  <a href="https://instagram.com/ansariabid5594" target="_blank" rel="noopener noreferrer" 
+                  <a href="https://www.instagram.com/frontendinterviewpro/" target="_blank" rel="noopener noreferrer" 
                      className="block text-primary-600 hover:text-primary-700">
-                    📷 Instagram: @ansariabid5594
+                    📷 Instagram: @frontendinterviewpro
                   </a>
                   <a href="https://t.me/dark_hacker_abid" target="_blank" rel="noopener noreferrer"
                      className="block text-primary-600 hover:text-primary-700">

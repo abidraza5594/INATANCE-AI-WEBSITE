@@ -29,7 +29,7 @@ export default function Footer() {
               AI-powered interview practice platform. Master your skills and land your dream job with real-time AI assistance.
             </p>
             <div className="flex space-x-4">
-              <a href="https://instagram.com/ansariabid5594" target="_blank" rel="noopener noreferrer" 
+              <a href="https://www.instagram.com/frontendinterviewpro/" target="_blank" rel="noopener noreferrer" 
                  className="text-gray-400 hover:text-white transition">
                 <Instagram className="h-6 w-6" />
               </a>
@@ -69,9 +69,9 @@ export default function Footer() {
               </li>
               <li className="flex items-start">
                 <Instagram className="h-5 w-5 text-gray-400 mr-2 mt-0.5 flex-shrink-0" />
-                <a href="https://instagram.com/ansariabid5594" target="_blank" rel="noopener noreferrer"
+                <a href="https://www.instagram.com/frontendinterviewpro/" target="_blank" rel="noopener noreferrer"
                    className="text-gray-400 hover:text-white transition">
-                  @ansariabid5594
+                  @frontendinterviewpro
                 </a>
               </li>
               <li className="flex items-start">
