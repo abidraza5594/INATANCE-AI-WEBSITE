@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Mic, Zap, Shield, Brain } from 'lucide-react';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { Sparkles, ArrowRight, Mic, Zap, Shield, Brain, MousePointer2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 const interviewQuestions = [
@@ -34,9 +34,30 @@ export default function Hero() {
   const [displayedAnswer, setDisplayedAnswer] = useState('');
   const [isTypingQuestion, setIsTypingQuestion] = useState(true);
   const [isTypingAnswer, setIsTypingAnswer] = useState(false);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const questionTimeoutRef = useRef(null);
   const answerTimeoutRef = useRef(null);
   const cycleTimeoutRef = useRef(null);
+
+  // Smooth spring physics for the tilt effect
+  const rotateX = useSpring(useTransform(y, [-300, 300], [5, -5]), { stiffness: 150, damping: 20 });
+  const rotateY = useSpring(useTransform(x, [-300, 300], [-5, 5]), { stiffness: 150, damping: 20 });
+
+  function handleMouseMove(event) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = event.clientX - rect.left - width / 2;
+    const mouseY = event.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
+  }
+
+  function handleMouseLeave() {
+    x.set(0);
+    y.set(0);
+  }
 
   useEffect(() => {
     return () => {
@@ -49,7 +70,7 @@ export default function Hero() {
   useEffect(() => {
     const currentQuestion = interviewQuestions[currentIndex].question;
     const currentAnswer = interviewQuestions[currentIndex].answer;
-    
+
     setDisplayedQuestion('');
     setDisplayedAnswer('');
     setIsTypingQuestion(true);
@@ -65,7 +86,7 @@ export default function Hero() {
         setIsTypingQuestion(false);
         questionTimeoutRef.current = setTimeout(() => {
           setIsTypingAnswer(true);
-          
+
           let answerIndex = 0;
           const typeAnswer = () => {
             if (answerIndex < currentAnswer.length) {
@@ -83,25 +104,25 @@ export default function Hero() {
         }, 500);
       }
     };
-    
+
     typeQuestion();
   }, [currentIndex]);
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 pt-24 pb-16 overflow-hidden">
+    <div className="relative min-h-screen bg-slate-50 pt-28 pb-20 lg:pt-36 lg:pb-32 overflow-hidden bg-noise">
       {/* Animated mesh gradient background */}
-      <div className="absolute inset-0 mesh-gradient opacity-30"></div>
-      
-      {/* Floating animated orbs */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 mesh-gradient-light opacity-60"></div>
+
+      {/* Floating animated orbs - Refined for elegance */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 100, 0],
+            scale: [1, 1.1, 1],
+            x: [0, 50, 0],
             y: [0, -100, 0],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          className="absolute top-20 left-10 lg:left-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
         <motion.div
           animate={{
@@ -110,7 +131,7 @@ export default function Hero() {
             y: [0, 100, 0],
           }}
           transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-pink-400 to-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          className="absolute bottom-20 right-10 lg:right-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-pink-400 to-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
         />
       </div>
 
@@ -121,7 +142,7 @@ export default function Hero() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-left"
+            className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0"
           >
             {/* FREE OFFER BADGE - Prominent */}
             <motion.div
@@ -131,7 +152,7 @@ export default function Hero() {
               className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full mb-6 shadow-2xl border-2 border-white animate-pulse"
             >
               <span className="text-2xl">🎁</span>
-              <span className="text-base font-black tracking-wide">2 HOURS FREE - TRY 1 INTERVIEW!</span>
+              <span className="text-base font-black tracking-wide">2 HOURS FREE</span>
             </motion.div>
 
             <motion.div
@@ -143,15 +164,15 @@ export default function Hero() {
               <Sparkles className="h-5 w-5 animate-pulse" />
               <span className="text-sm font-bold tracking-wide">AI-Powered Interview Assistant</span>
             </motion.div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
+
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight tracking-tight">
               Ace Every
-              <span className="block gradient-text animate-pulse">Interview</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 animate-gradient-x pb-2">Interview</span>
               <span className="block">With AI Power</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-6 leading-relaxed">
-              Real-time AI assistance that's <span className="font-bold text-primary-600">100% invisible</span>. 
+
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 mb-8 leading-relaxed px-4 lg:px-0">
+              Real-time AI assistance that's <span className="font-bold text-primary-600">100% invisible</span>.
               Get perfect answers in <span className="font-bold text-purple-600">less than 1 second</span>.
             </p>
 
@@ -160,7 +181,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-2xl p-6 mb-8 shadow-xl"
+              className="bg-white/60 backdrop-blur-md border border-green-200 rounded-2xl p-6 mb-10 shadow-xl max-w-lg mx-auto lg:mx-0 text-left"
             >
               <div className="flex items-center space-x-3 mb-3">
                 <span className="text-3xl">🆓</span>
@@ -185,8 +206,8 @@ export default function Hero() {
                 </li>
               </ul>
             </motion.div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 mb-12">
+
+            <div className="flex flex-col sm:flex-row gap-4 mb-14 justify-center lg:justify-start px-4 sm:px-0">
               <Link to="/signup" className="btn-primary group inline-flex items-center justify-center space-x-1.5 text-sm px-4 py-2.5 sm:w-auto whitespace-nowrap">
                 <span>Start Free Trial</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -197,14 +218,14 @@ export default function Hero() {
                 </svg>
                 <span>Download App</span>
               </Link>
-              <a href="#how-it-works" className="btn-secondary inline-flex items-center justify-center text-sm group px-4 py-2.5 sm:w-auto whitespace-nowrap space-x-1.5">
+              <a href="#how-it-works" className="btn-secondary inline-flex items-center justify-center text-sm group px-6 py-3.5 sm:w-auto whitespace-nowrap space-x-2">
                 <Mic className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>See How It Works</span>
               </a>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto lg:mx-0 border-t border-gray-200 pt-8 lg:border-none lg:pt-0">
               {[
                 { value: '<1s', label: 'Response Time' },
                 { value: '100%', label: 'Invisible' },
@@ -224,134 +245,140 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right side - Animated mockup */}
+          {/* Right side - 3D Animated mockup */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative px-2 sm:px-4 lg:px-0"
+            initial={{ opacity: 0, x: 50, rotateY: 30 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ duration: 1, type: "spring", bounce: 0.2 }}
+            className="relative px-2 sm:px-4 lg:px-0 perspective-1000"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
           >
-            {/* Floating icons - Adjusted positioning */}
-            {floatingIcons.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 + item.delay, duration: 0.5 }}
-                className="absolute z-10 hidden lg:block"
-                style={{
-                  top: `${20 + index * 25}%`,
-                  left: index % 2 === 0 ? '-10%' : 'auto',
-                  right: index % 2 === 1 ? '-5%' : 'auto',
-                }}
-              >
+            <motion.div
+              style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+              className="relative transition-shadow duration-300"
+            >
+              {/* Floating icons - Adjusted positioning */}
+              {floatingIcons.map((item, index) => (
                 <motion.div
-                  animate={{ y: [0, -20, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
-                  className={`${item.color} bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/20`}
+                  key={index}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1 + item.delay, duration: 0.5 }}
+                  className="absolute z-10 hidden lg:block"
+                  style={{
+                    top: `${20 + index * 25}%`,
+                    left: index % 2 === 0 ? '-10%' : 'auto',
+                    right: index % 2 === 1 ? '-5%' : 'auto',
+                  }}
                 >
-                  <item.Icon className="h-8 w-8" />
+                  <motion.div
+                    animate={{ y: [0, -20, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
+                    className={`${item.color} bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/20`}
+                  >
+                    <item.Icon className="h-8 w-8" />
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            ))}
+              ))}
 
-            {/* Main mockup */}
-            <div className="relative glass-card p-2 sm:p-4 animate-float">
-              {/* Browser header */}
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-3 sm:p-4 flex items-center space-x-2">
-                <div className="flex space-x-1.5 sm:space-x-2">
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse"></div>
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-                <div className="flex-1 text-center">
-                  <span className="text-gray-400 text-xs sm:text-sm font-bold tracking-wider">INSTANT INTERVIEW AI</span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-b-2xl p-4 sm:p-6 lg:p-8 min-h-[450px] flex flex-col justify-between relative overflow-hidden">
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
+              {/* Main mockup */}
+              <div className="relative glass-card p-2 sm:p-4 animate-float">
+                {/* Browser header */}
+                <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-3 sm:p-4 flex items-center space-x-2">
+                  <div className="flex space-x-1.5 sm:space-x-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                  <div className="flex-1 text-center">
+                    <span className="text-gray-400 text-xs sm:text-sm font-bold tracking-widest opacity-50">INTERVIEW.AI</span>
+                  </div>
                 </div>
 
-                <div className="space-y-4 sm:space-y-6 relative z-10">
-                  {/* Question */}
-                  <motion.div
-                    key={`q-${currentIndex}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-blue-500"
-                  >
-                    <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl animate-pulse-glow">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <span className="text-blue-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Question</span>
-                    </div>
-                    <p className="text-white text-sm sm:text-base lg:text-lg font-medium leading-relaxed min-h-[28px]">
-                      {displayedQuestion}
-                      {isTypingQuestion && <span className="animate-pulse text-blue-400">|</span>}
-                    </p>
-                  </motion.div>
+                {/* Content */}
+                <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-b-2xl p-4 sm:p-6 lg:p-8 min-h-[450px] flex flex-col justify-between relative overflow-hidden">
+                  {/* Animated background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
+                  </div>
 
-                  {/* Answer */}
-                  <motion.div
-                    key={`a-${currentIndex}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-green-500"
-                  >
-                    <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                      <div className={`bg-gradient-to-r from-green-500 to-emerald-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${isTypingAnswer ? 'animate-pulse-glow' : ''}`}>
-                        <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                      </div>
-                      <span className="text-green-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Your Answer</span>
-                    </div>
-                    <p className="text-gray-300 text-sm sm:text-base leading-relaxed min-h-[100px]">
-                      {displayedAnswer}
-                      {isTypingAnswer && <span className="animate-pulse text-green-400">|</span>}
-                    </p>
-                    
-                    {isTypingAnswer && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-4 flex items-center space-x-2 text-sm text-gray-400"
-                      >
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        </div>
-                        <span className="font-medium">AI generating response...</span>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </div>
-
-                {/* Progress */}
-                <div className="flex justify-center space-x-2 relative z-10">
-                  {interviewQuestions.map((_, index) => (
+                  <div className="space-y-4 sm:space-y-6 relative z-10">
+                    {/* Question */}
                     <motion.div
-                      key={index}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5 + index * 0.1 }}
-                      className={`h-2 rounded-full transition-all duration-500 ${
-                        index === currentIndex 
-                          ? 'w-12 bg-gradient-to-r from-primary-500 to-purple-500' 
+                      key={`q-${currentIndex}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-blue-500"
+                    >
+                      <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl animate-pulse-glow">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <span className="text-blue-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Question</span>
+                      </div>
+                      <p className="text-white text-sm sm:text-base lg:text-lg font-medium leading-relaxed min-h-[28px]">
+                        {displayedQuestion}
+                        {isTypingQuestion && <span className="animate-pulse text-blue-400">|</span>}
+                      </p>
+                    </motion.div>
+
+                    {/* Answer */}
+                    <motion.div
+                      key={`a-${currentIndex}`}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-green-500"
+                    >
+                      <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                        <div className={`bg-gradient-to-r from-green-500 to-emerald-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${isTypingAnswer ? 'animate-pulse-glow' : ''}`}>
+                          <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </div>
+                        <span className="text-green-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Your Answer</span>
+                      </div>
+                      <p className="text-gray-300 text-sm sm:text-base leading-relaxed min-h-[100px]">
+                        {displayedAnswer}
+                        {isTypingAnswer && <span className="animate-pulse text-green-400">|</span>}
+                      </p>
+
+                      {isTypingAnswer && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="mt-4 flex items-center space-x-2 text-sm text-gray-400"
+                        >
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                          <span className="font-medium">AI generating response...</span>
+                        </motion.div>
+                      )}
+                    </motion.div>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="flex justify-center space-x-2 relative z-10">
+                    {interviewQuestions.map((_, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
+                        className={`h-2 rounded-full transition-all duration-500 ${index === currentIndex
+                          ? 'w-12 bg-gradient-to-r from-primary-500 to-purple-500'
                           : 'w-2 bg-gray-600'
-                      }`}
-                    />
-                  ))}
+                          }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>

@@ -16,7 +16,7 @@ export default function Pricing() {
         try {
           const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
           const userDoc = await getDoc(doc(db, 'users', docId));
-          
+
           if (userDoc.exists()) {
             const userData = userDoc.data();
             // Check if user has made any purchase
@@ -33,7 +33,7 @@ export default function Pricing() {
   }, [user]);
 
   const currentPrice = isFirstTime ? 300 : 500;
-  const paymentLink = isFirstTime 
+  const paymentLink = isFirstTime
     ? 'https://rzp.io/rzp/7Q42vVa'  // First time ₹300
     : 'https://rzp.io/rzp/GrVtHchT'; // Regular ₹500
 
@@ -51,11 +51,12 @@ export default function Pricing() {
   ];
 
   return (
-    <div id="pricing" className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50 relative overflow-hidden">
+    <div id="pricing" className="py-24 relative overflow-hidden">
       {/* Animated background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute bottom-20 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+      <div className="absolute inset-0 mesh-gradient-light opacity-60"></div>
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob opacity-50"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000 opacity-50"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,14 +67,14 @@ export default function Pricing() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-purple-100 text-primary-700 px-4 py-2 rounded-full mb-4">
-              <Zap className="h-4 w-4" />
-              <span className="text-sm font-semibold">Pay Per Interview</span>
+            <div className="inline-flex items-center space-x-2 bg-white/60 backdrop-blur-sm border border-gray-200 px-6 py-2 rounded-full mb-6 shadow-sm">
+              <Zap className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-bold tracking-wide uppercase text-gray-700">Pay Per Interview</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+              Simple, Transparent <span className="text-primary-600">Pricing</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               2 hours per purchase - enough for one complete interview
             </p>
           </motion.div>
@@ -113,7 +114,7 @@ export default function Pricing() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {isFirstTime ? 'First Time Special' : 'Regular Price'}
                   </h3>
-                  
+
                   <div className="flex items-center justify-center space-x-2 mb-4">
                     <div className="text-6xl font-black gradient-text">
                       ₹{currentPrice}
@@ -127,7 +128,7 @@ export default function Pricing() {
                   )}
 
                   <p className="text-gray-600 font-medium">2 Hours Practice Time</p>
-                  
+
                   {!isFirstTime && (
                     <p className="text-sm text-gray-500 mt-2">
                       Regular price for subsequent purchases
@@ -210,13 +211,13 @@ export default function Pricing() {
                 <div className="text-sm text-gray-600">Free Trial</div>
               </div>
             </div>
-            
+
             <div className="mt-6 pt-6 border-t border-blue-200 text-center">
               <p className="text-gray-700 font-medium mb-2">
                 💡 How it works:
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                After payment, the time will be automatically added to your account. 
+                After payment, the time will be automatically added to your account.
                 {isFirstTime && <span className="font-bold text-orange-600"> First-time users get special ₹300 pricing!</span>}
                 {!isFirstTime && <span> Regular price applies for subsequent purchases.</span>}
               </p>
@@ -225,19 +226,6 @@ export default function Pricing() {
         </motion.div>
       </div>
 
-      <style jsx>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-      `}</style>
     </div>
   );
 }

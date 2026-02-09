@@ -51,20 +51,23 @@ const features = [
 
 export default function Features() {
   return (
-    <div id="features" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+    <div id="features" className="py-24 relative overflow-hidden">
+      {/* Mesh Gradient Background */}
+      <div className="absolute inset-0 mesh-gradient-light opacity-60"></div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+        <div className="text-center mb-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Everything You Need to Succeed
+            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+              Power <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-purple-600">Unleashed</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to help you ace your next interview
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Every tool you need to dominate your interview, packed into one invisible assistant.
             </p>
           </motion.div>
         </div>
@@ -73,17 +76,17 @@ export default function Features() {
           {features.map((feature, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="card hover:scale-105 transition-transform duration-300"
+              className="glass-card hover:shadow-2xl hover:bg-white/90 transition-all duration-500 group"
             >
-              <div className="bg-primary-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-primary-600" />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                <feature.icon className="h-7 w-7 text-primary-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors">{feature.title}</h3>
+              <p className="text-gray-600 leading-relaxed text-lg">{feature.description}</p>
             </motion.div>
           ))}
         </div>
