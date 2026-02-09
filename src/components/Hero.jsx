@@ -123,6 +123,17 @@ export default function Hero() {
             transition={{ duration: 0.8 }}
             className="text-left"
           >
+            {/* FREE OFFER BADGE - Prominent */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, type: "spring" }}
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full mb-6 shadow-2xl border-2 border-white animate-pulse"
+            >
+              <span className="text-2xl">🎁</span>
+              <span className="text-base font-black tracking-wide">2 HOURS FREE - TRY 1 INTERVIEW!</span>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -139,10 +150,41 @@ export default function Hero() {
               <span className="block">With AI Power</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-600 mb-6 leading-relaxed">
               Real-time AI assistance that's <span className="font-bold text-primary-600">100% invisible</span>. 
               Get perfect answers in <span className="font-bold text-purple-600">less than 1 second</span>.
             </p>
+
+            {/* FREE OFFER HIGHLIGHT BOX */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-500 rounded-2xl p-6 mb-8 shadow-xl"
+            >
+              <div className="flex items-center space-x-3 mb-3">
+                <span className="text-3xl">🆓</span>
+                <h3 className="text-2xl font-black text-gray-900">Get Started FREE!</h3>
+              </div>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-center space-x-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="font-semibold">2 Hours Free Time (Worth ₹300)</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="font-semibold">Complete 1 Full Interview</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="font-semibold">All Features Unlocked</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span className="font-semibold">No Credit Card Required</span>
+                </li>
+              </ul>
+            </motion.div>
             
             <div className="flex flex-col sm:flex-row gap-3 mb-12">
               <Link to="/signup" className="btn-primary group inline-flex items-center justify-center space-x-1.5 text-sm px-4 py-2.5 sm:w-auto whitespace-nowrap">
