@@ -20,12 +20,12 @@ const features = [
   {
     icon: Keyboard,
     title: '3 Input Modes',
-    description: 'Voice Mode (Caps Lock OFF), Text Input Mode (Caps Lock ON), and Screenshot Mode (Alt key). Complete keyboard control.'
+    description: 'Voice Mode (Caps Lock OFF - DELETE button), Text Input Mode (Caps Lock ON), and Screenshot Mode (Alt key). Complete keyboard control.'
   },
   {
     icon: Camera,
     title: 'Screenshot Analysis',
-    description: 'Press Alt twice to capture screen. AI analyzes code, diagrams, and errors with Vision models. Perfect for coding questions.'
+    description: 'Press Alt to open box, resize with SHIFT+Arrow, move with CTRL+SHIFT+Arrow, press Alt again to capture. AI analyzes code, diagrams, and errors.'
   },
   {
     icon: Layers,

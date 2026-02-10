@@ -5,7 +5,7 @@ const shortcuts = [
   {
     category: 'Answer Control',
     items: [
-      { keys: ['SPACE', 'DELETE'], description: 'Get Answer (Voice Mode)' },
+      { keys: ['DELETE'], description: 'Get Answer (Voice Mode)' },
       { keys: ['ENTER'], description: 'Submit Question (Text Mode)' },
       { keys: ['SHIFT', 'ENTER'], description: 'New Line (Text Mode)' }
     ]
@@ -21,9 +21,11 @@ const shortcuts = [
   {
     category: 'Screenshot Mode',
     items: [
-      { keys: ['ALT', '×2'], description: 'Screenshot Mode (Press Twice)' },
-      { keys: ['SHIFT', 'ARROW'], description: 'Resize Selection Box' },
-      { keys: ['CTRL', 'SHIFT', 'ARROW'], description: 'Move Selection Box' }
+      { keys: ['ALT'], description: 'Open Screenshot Box (Press Once)' },
+      { keys: ['SHIFT', 'ARROW'], description: 'Move Selection Box' },
+      { keys: ['CTRL', 'SHIFT', 'ARROW'], description: 'Resize Selection Box' },
+      { keys: ['ALT'], description: 'Capture Screenshot (Press Again)' },
+      { keys: ['ESC'], description: 'Cancel Screenshot Mode' }
     ]
   },
   {

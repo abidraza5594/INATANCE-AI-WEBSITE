@@ -22,7 +22,7 @@ const steps = [
     icon: Zap,
     number: '3',
     title: 'Get Instant Answers',
-    description: 'Press SPACE or DELETE when interviewer asks. AI generates perfect answer in <1 second.',
+    description: 'Press DELETE when interviewer asks. AI generates perfect answer in <1 second.',
     color: 'from-orange-500 to-orange-600',
     features: ['<1s response time', 'Natural answers', 'Code examples', 'Conversation memory']
   },
@@ -41,8 +41,8 @@ const inputModes = [
     mode: 'Voice Mode',
     trigger: 'Caps Lock OFF',
     icon: '🎤',
-    description: 'Automatically listens to interviewer via system audio',
-    howTo: 'Interviewer asks → Press SPACE/DELETE → Get answer',
+    description: 'When interviewer asks a question, simply press DELETE button to get instant answer',
+    howTo: 'Interviewer speaks → Press DELETE → Get answer instantly',
     bestFor: 'Normal interview questions',
     gradient: 'from-blue-500 to-cyan-500'
   },
@@ -50,18 +50,18 @@ const inputModes = [
     mode: 'Text Input Mode',
     trigger: 'Caps Lock ON',
     icon: '⌨️',
-    description: 'Type questions manually for specific queries',
-    howTo: 'Type question → Press ENTER → Get answer',
-    bestFor: 'Unclear audio or specific follow-ups',
+    description: 'Turn Caps Lock ON and input box opens. Your clipboard content auto-pastes. Perfect for coding questions',
+    howTo: 'Caps Lock ON → Code/Question auto-pastes → Type more (optional) → Press ENTER → Get answer',
+    bestFor: 'Coding questions, code snippets, input/output problems',
     gradient: 'from-purple-500 to-pink-500'
   },
   {
     mode: 'Screenshot Mode',
     trigger: 'Alt × 2',
     icon: '📸',
-    description: 'Capture and analyze code, diagrams, or errors',
-    howTo: 'Alt → Resize box → Alt → Type question → ENTER',
-    bestFor: 'Coding questions and visual problems',
+    description: 'Capture any part of your screen and ask AI about it. Perfect for visual problems',
+    howTo: 'Press Alt → Box appears → SHIFT+Arrow to move box → SHIFT+CTRL+Arrow to resize → Press Alt again → Screenshot captured → Type question → ENTER',
+    bestFor: 'Code diagrams, errors, visual problems. Press ESC to cancel',
     gradient: 'from-orange-500 to-red-500'
   }
 ];
