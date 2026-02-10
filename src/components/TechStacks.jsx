@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
 import { Code2 } from 'lucide-react';
+import { memo } from 'react';
 
 const techStacks = [
   { name: 'JavaScript', icon: '🟡', color: 'from-yellow-400 to-yellow-600', description: 'ES6+, DOM, Async/Await' },
@@ -16,63 +16,49 @@ const techStacks = [
   { name: 'QA Tester', icon: '🧪', color: 'from-teal-400 to-teal-600', description: 'Selenium, Cypress, Testing' }
 ];
 
+// Memoized tech card
+const TechCard = memo(({ tech, index }) => (
+  <div className="relative group">
+    <div className="glass-card h-full p-6 text-center hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+      <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">{tech.icon}</div>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{tech.name}</h3>
+      <p className="text-sm text-gray-500 font-medium">{tech.description}</p>
+
+      {/* Hover Glow */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${tech.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300 pointer-events-none`}></div>
+    </div>
+  </div>
+));
+
+TechCard.displayName = 'TechCard';
+
 export default function TechStacks() {
   return (
-    <div id="tech-stacks" className="py-24 relative overflow-hidden">
-      {/* Background with mesh gradient */}
-      <div className="absolute inset-0 mesh-gradient-light opacity-50"></div>
+    <div id="tech-stacks" className="py-24 relative overflow-hidden bg-slate-50">
+      {/* Simplified background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-50"></div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-6 border border-blue-100 shadow-sm">
-              <Code2 className="h-4 w-4" />
-              <span className="text-sm font-bold uppercase tracking-wider">12+ Technologies</span>
-            </div>
-            <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
-              Every Tech Stack <span className="text-primary-600">Covered</span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Switch between technology profiles instantly with Caps Lock double-tap. AI answers from that technology's perspective.
-            </p>
-          </motion.div>
+          <div className="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-6 border border-blue-100 shadow-sm">
+            <Code2 className="h-4 w-4" />
+            <span className="text-sm font-bold uppercase tracking-wider">12+ Technologies</span>
+          </div>
+          <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">
+            Every Tech Stack <span className="text-primary-600">Covered</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Switch between technology profiles instantly with Caps Lock double-tap. AI answers from that technology's perspective.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16">
           {techStacks.map((tech, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              whileHover={{ scale: 1.05, y: -5 }}
-              className="relative group"
-            >
-              <div className="glass-card h-full p-6 text-center hover:shadow-xl transition-all duration-300 border border-white/60">
-                <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">{tech.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{tech.name}</h3>
-                <p className="text-sm text-gray-500 font-medium">{tech.description}</p>
-
-                {/* Hover Glow */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${tech.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300 pointer-events-none`}></div>
-              </div>
-            </motion.div>
+            <TechCard key={index} tech={tech} index={index} />
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="glass-card p-10 border border-primary-100 bg-white/60"
-        >
+        <div className="glass-card p-10 border border-primary-100 bg-white">
           <div className="grid md:grid-cols-3 gap-10 text-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
             <div className="p-4">
               <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-600 mb-2">12+</div>
@@ -93,7 +79,7 @@ export default function TechStacks() {
               AI understands technology relationships and answers accordingly!
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

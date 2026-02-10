@@ -24,7 +24,7 @@ export default function Navbar({ user }) {
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 fixed w-full top-0 z-50 transition-all duration-300">
+    <nav className="bg-white border-b border-gray-100 fixed w-full top-0 z-50 transition-shadow duration-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
@@ -70,7 +70,7 @@ export default function Navbar({ user }) {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-100 shadow-lg absolute w-full left-0">
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0">
           <div className="px-4 pt-4 pb-6 space-y-2">
             <button onClick={() => scrollToSection('features')} className="block w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-colors">Features</button>
             <button onClick={() => scrollToSection('how-it-works')} className="block w-full text-left px-4 py-3 text-gray-700 font-medium hover:bg-primary-50 hover:text-primary-600 rounded-xl transition-colors">How It Works</button>

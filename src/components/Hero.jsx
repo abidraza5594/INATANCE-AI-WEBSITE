@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { Sparkles, ArrowRight, Mic, Zap, Shield, Brain, MousePointer2 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { Sparkles, ArrowRight, Mic, Zap, Shield, Brain } from 'lucide-react';
+import { useState, useEffect, useRef, memo } from 'react';
 
 const interviewQuestions = [
   {
@@ -28,36 +27,34 @@ const floatingIcons = [
   { Icon: Brain, color: 'text-purple-500', delay: 1 },
 ];
 
+// Memoized floating icon component
+const FloatingIcon = memo(({ Icon, color, index, delay }) => (
+  <div
+    className="absolute z-10 hidden lg:block animate-float"
+    style={{
+      top: `${20 + index * 25}%`,
+      left: index % 2 === 0 ? '-10%' : 'auto',
+      right: index % 2 === 1 ? '-5%' : 'auto',
+      animationDelay: `${delay}s`
+    }}
+  >
+    <div className={`${color} bg-white rounded-2xl shadow-2xl p-4 border border-gray-100`}>
+      <Icon className="h-8 w-8" />
+    </div>
+  </div>
+));
+
+FloatingIcon.displayName = 'FloatingIcon';
+
 export default function Hero() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayedQuestion, setDisplayedQuestion] = useState('');
   const [displayedAnswer, setDisplayedAnswer] = useState('');
   const [isTypingQuestion, setIsTypingQuestion] = useState(true);
   const [isTypingAnswer, setIsTypingAnswer] = useState(false);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
   const questionTimeoutRef = useRef(null);
   const answerTimeoutRef = useRef(null);
   const cycleTimeoutRef = useRef(null);
-
-  // Smooth spring physics for the tilt effect
-  const rotateX = useSpring(useTransform(y, [-300, 300], [5, -5]), { stiffness: 150, damping: 20 });
-  const rotateY = useSpring(useTransform(x, [-300, 300], [-5, 5]), { stiffness: 150, damping: 20 });
-
-  function handleMouseMove(event) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = event.clientX - rect.left - width / 2;
-    const mouseY = event.clientY - rect.top - height / 2;
-    x.set(mouseX);
-    y.set(mouseY);
-  }
-
-  function handleMouseLeave() {
-    x.set(0);
-    y.set(0);
-  }
 
   useEffect(() => {
     return () => {
@@ -109,65 +106,34 @@ export default function Hero() {
   }, [currentIndex]);
 
   return (
-    <div className="relative min-h-screen bg-slate-50 pt-28 pb-20 lg:pt-36 lg:pb-32 overflow-hidden bg-noise">
-      {/* Animated mesh gradient background */}
-      <div className="absolute inset-0 mesh-gradient-light opacity-60"></div>
+    <div className="relative min-h-screen bg-slate-50 pt-28 pb-20 lg:pt-36 lg:pb-32 overflow-hidden">
+      {/* Simplified gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-60"></div>
 
-      {/* Floating animated orbs - Refined for elegance */}
+      {/* Simplified floating orbs - CSS only */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            x: [0, 50, 0],
-            y: [0, -100, 0],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 left-10 lg:left-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, -100, 0],
-            y: [0, 100, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-20 right-10 lg:right-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-pink-400 to-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30"
-        />
+        <div className="absolute top-20 left-10 lg:left-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-20 right-10 lg:right-20 w-72 h-72 lg:w-96 lg:h-96 bg-gradient-to-r from-pink-400 to-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Text content */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0"
-          >
-            {/* FREE OFFER BADGE - Prominent */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, type: "spring" }}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full mb-6 shadow-2xl border-2 border-white animate-pulse"
-            >
+          <div className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0">
+            {/* FREE OFFER BADGE */}
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-full mb-6 shadow-2xl border-2 border-white animate-pulse">
               <span className="text-2xl">🎁</span>
               <span className="text-base font-black tracking-wide">2 HOURS FREE</span>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-purple-100 text-primary-700 px-6 py-3 rounded-full mb-8 backdrop-blur-sm border border-white/20 shadow-lg"
-            >
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-purple-100 text-primary-700 px-6 py-3 rounded-full mb-8 border border-white shadow-lg">
               <Sparkles className="h-5 w-5 animate-pulse" />
               <span className="text-sm font-bold tracking-wide">AI-Powered Interview Assistant</span>
-            </motion.div>
+            </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight tracking-tight">
               Ace Every
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 animate-gradient-x pb-2">Interview</span>
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 pb-2">Interview</span>
               <span className="block">With AI Power</span>
             </h1>
 
@@ -177,12 +143,7 @@ export default function Hero() {
             </p>
 
             {/* FREE OFFER HIGHLIGHT BOX */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white/60 backdrop-blur-md border border-green-200 rounded-2xl p-6 mb-10 shadow-xl max-w-lg mx-auto lg:mx-0 text-left"
-            >
+            <div className="bg-white border border-green-200 rounded-2xl p-6 mb-10 shadow-xl max-w-lg mx-auto lg:mx-0 text-left">
               <div className="flex items-center space-x-3 mb-3">
                 <span className="text-3xl">🆓</span>
                 <h3 className="text-2xl font-black text-gray-900">Get Started FREE!</h3>
@@ -205,14 +166,14 @@ export default function Hero() {
                   <span className="font-semibold">No Credit Card Required</span>
                 </li>
               </ul>
-            </motion.div>
+            </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-14 justify-center lg:justify-start px-4 sm:px-0">
               <Link to="/signup" className="btn-primary group inline-flex items-center justify-center space-x-1.5 text-sm px-4 py-2.5 sm:w-auto whitespace-nowrap">
                 <span>Start Free Trial</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/download" className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:w-auto whitespace-nowrap">
+              <Link to="/download" className="inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-700 transition-colors duration-200 shadow-lg text-sm sm:w-auto whitespace-nowrap">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -231,65 +192,36 @@ export default function Hero() {
                 { value: '100%', label: 'Invisible' },
                 { value: '12+', label: 'Tech Stacks' }
               ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  className="text-center"
-                >
+                <div key={index} className="text-center">
                   <div className="text-3xl font-black gradient-text">{stat.value}</div>
                   <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Right side - 3D Animated mockup */}
-          <motion.div
-            initial={{ opacity: 0, x: 50, rotateY: 30 }}
-            animate={{ opacity: 1, x: 0, rotateY: 0 }}
-            transition={{ duration: 1, type: "spring", bounce: 0.2 }}
-            className="relative px-2 sm:px-4 lg:px-0 perspective-1000"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            <motion.div
-              style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-              className="relative transition-shadow duration-300"
-            >
-              {/* Floating icons - Adjusted positioning */}
+          {/* Right side - Optimized mockup */}
+          <div className="relative px-2 sm:px-4 lg:px-0">
+            <div className="relative">
+              {/* Floating icons */}
               {floatingIcons.map((item, index) => (
-                <motion.div
+                <FloatingIcon
                   key={index}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1 + item.delay, duration: 0.5 }}
-                  className="absolute z-10 hidden lg:block"
-                  style={{
-                    top: `${20 + index * 25}%`,
-                    left: index % 2 === 0 ? '-10%' : 'auto',
-                    right: index % 2 === 1 ? '-5%' : 'auto',
-                  }}
-                >
-                  <motion.div
-                    animate={{ y: [0, -20, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, delay: item.delay }}
-                    className={`${item.color} bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-white/20`}
-                  >
-                    <item.Icon className="h-8 w-8" />
-                  </motion.div>
-                </motion.div>
+                  Icon={item.Icon}
+                  color={item.color}
+                  index={index}
+                  delay={item.delay}
+                />
               ))}
 
               {/* Main mockup */}
-              <div className="relative glass-card p-2 sm:p-4 animate-float">
+              <div className="relative glass-card p-2 sm:p-4">
                 {/* Browser header */}
                 <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-t-2xl p-3 sm:p-4 flex items-center space-x-2">
                   <div className="flex space-x-1.5 sm:space-x-2">
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse"></div>
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
                   </div>
                   <div className="flex-1 text-center">
                     <span className="text-gray-400 text-xs sm:text-sm font-bold tracking-widest opacity-50">INTERVIEW.AI</span>
@@ -298,21 +230,11 @@ export default function Hero() {
 
                 {/* Content */}
                 <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-b-2xl p-4 sm:p-6 lg:p-8 min-h-[450px] flex flex-col justify-between relative overflow-hidden">
-                  {/* Animated background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse"></div>
-                  </div>
-
                   <div className="space-y-4 sm:space-y-6 relative z-10">
                     {/* Question */}
-                    <motion.div
-                      key={`q-${currentIndex}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-blue-500"
-                    >
+                    <div className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-blue-500">
                       <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl animate-pulse-glow">
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
                           <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -323,18 +245,12 @@ export default function Hero() {
                         {displayedQuestion}
                         {isTypingQuestion && <span className="animate-pulse text-blue-400">|</span>}
                       </p>
-                    </motion.div>
+                    </div>
 
                     {/* Answer */}
-                    <motion.div
-                      key={`a-${currentIndex}`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-green-500"
-                    >
+                    <div className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 border-l-4 border-green-500">
                       <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
-                        <div className={`bg-gradient-to-r from-green-500 to-emerald-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl ${isTypingAnswer ? 'animate-pulse-glow' : ''}`}>
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
                           <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
                         <span className="text-green-400 font-bold text-xs sm:text-sm uppercase tracking-wider">Your Answer</span>
@@ -345,30 +261,23 @@ export default function Hero() {
                       </p>
 
                       {isTypingAnswer && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="mt-4 flex items-center space-x-2 text-sm text-gray-400"
-                        >
+                        <div className="mt-4 flex items-center space-x-2 text-sm text-gray-400">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                             <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
                           <span className="font-medium">AI generating response...</span>
-                        </motion.div>
+                        </div>
                       )}
-                    </motion.div>
+                    </div>
                   </div>
 
                   {/* Progress */}
                   <div className="flex justify-center space-x-2 relative z-10">
                     {interviewQuestions.map((_, index) => (
-                      <motion.div
+                      <div
                         key={index}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.5 + index * 0.1 }}
                         className={`h-2 rounded-full transition-all duration-500 ${index === currentIndex
                           ? 'w-12 bg-gradient-to-r from-primary-500 to-purple-500'
                           : 'w-2 bg-gray-600'
@@ -378,8 +287,8 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
