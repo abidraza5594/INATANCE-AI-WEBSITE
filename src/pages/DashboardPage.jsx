@@ -9,16 +9,13 @@ import {
     Download,
     Mic2,
     Gift,
-    Check,
     Key,
     Save,
     Eye,
-    EyeOff,
-    AlertCircle,
-    Mail
+    EyeOff
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { onAuthChange, logOut, resendVerificationEmail } from '../firebase/auth';
+import { onAuthChange, logOut } from '../firebase/auth';
 import { getUserTime, formatTime, addPurchasedTime } from '../utils/timeSync';
 import { initiatePayment } from '../utils/razorpay';
 import { saveUserAPIKeys, validateAPIKeys } from '../utils/apiKeyManager';
@@ -33,7 +30,6 @@ export default function DashboardPage() {
     const [showMistralKey, setShowMistralKey] = useState(false);
     const [showGeminiKey, setShowGeminiKey] = useState(false);
     const [savingKeys, setSavingKeys] = useState(false);
-    const [resendingEmail, setResendingEmail] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -175,18 +171,6 @@ export default function DashboardPage() {
         document.body.removeChild(link);
     };
 
-    const handleResendVerification = async () => {
-        setResendingEmail(true);
-        const result = await resendVerificationEmail();
-        setResendingEmail(false);
-        
-        if (result.success) {
-            alert('✅ Verification email sent! Please check your inbox (and spam folder).');
-        } else {
-            alert('❌ ' + result.error);
-        }
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-[#05080f] flex items-center justify-center">
@@ -255,44 +239,6 @@ export default function DashboardPage() {
                         <p className="text-slate-500 text-sm mt-1 uppercase tracking-tight font-bold">Welcome back, {user?.displayName?.split(' ')[0] || 'User'}!</p>
                     </div>
                 </header>
-
-                {/* Email Verification Banner */}
-                {user && !user.emailVerified && (
-                    <div className="mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-6">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
-                                <AlertCircle className="w-6 h-6 text-yellow-400" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold text-white mb-2">Verify Your Email Address</h3>
-                                <p className="text-sm text-gray-300 mb-4">
-                                    Please verify your email address to unlock all features. We've sent a verification link to <span className="font-semibold text-yellow-400">{user.email}</span>
-                                </p>
-                                <div className="flex flex-wrap gap-3">
-                                    <button
-                                        onClick={handleResendVerification}
-                                        disabled={resendingEmail}
-                                        className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-700 text-white font-semibold px-4 py-2 rounded-xl transition-all disabled:cursor-not-allowed text-sm"
-                                    >
-                                        {resendingEmail ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                Sending...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Mail className="w-4 h-4" />
-                                                Resend Verification Email
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        onClick={() => window.location.reload()}
-                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold px-4 py-2 rounded-xl transition-all border border-white/10 text-sm"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                        I've Verified
-                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
