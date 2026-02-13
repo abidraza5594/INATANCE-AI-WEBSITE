@@ -12,7 +12,6 @@ export default function AuthPage() {
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-    const [debugInfo, setDebugInfo] = useState(''); // Debug info for mobile
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -21,78 +20,54 @@ export default function AuthPage() {
     });
     const navigate = useNavigate();
 
-    // AGGRESSIVE CHECK: Check on every page load if user tried to login
+    // Check on page load for Google login issues
     useEffect(() => {
-        const checkLoginAttempt = async () => {
+        const checkGoogleLogin = async () => {
             const loginAttempt = localStorage.getItem('googleLoginAttempt');
             if (!loginAttempt) return;
             
             const timeSince = Date.now() - parseInt(loginAttempt);
             
-            // If login attempt was recent (within 30 seconds)
+            // If recent attempt (within 30 seconds)
             if (timeSince < 30000) {
-                console.log('[AUTH PAGE] Recent login attempt detected, checking for issues...');
-                setDebugInfo(`Recent login attempt ${timeSince}ms ago, checking...`);
+                // Wait for Firebase to settle
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 
-                // Wait a bit for Firebase to settle
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                // Check if user is logged in now
                 const currentUser = auth.currentUser;
-                console.log('[AUTH PAGE] Current user after wait:', currentUser?.email || 'none');
                 
                 if (!currentUser) {
-                    // Login failed - show error
-                    console.log('[AUTH PAGE] Login failed - no user found');
-                    const errorMsg = 'Google login failed. This might be because:\n\n1. This device already has an account\n2. Login was cancelled\n3. Network issue\n\nPlease try logging in with email/password if you have an existing account.';
-                    
+                    // Login failed
                     localStorage.removeItem('googleLoginAttempt');
                     sessionStorage.removeItem('processingGoogleRedirect');
                     
-                    alert('LOGIN FAILED: ' + errorMsg);
-                    showToast('⚠️ ' + errorMsg, 'error', 15000);
-                    setDebugInfo('Login failed - no user found');
+                    showToast('⚠️ Google login failed. If you have an existing account, please use email/password login instead.', 'error', 10000);
                 }
-            } else if (timeSince > 30000) {
+            } else {
                 // Old attempt, clear it
                 localStorage.removeItem('googleLoginAttempt');
                 sessionStorage.removeItem('processingGoogleRedirect');
             }
         };
         
-        checkLoginAttempt();
+        checkGoogleLogin();
     }, []);
 
-    // Check if user is already logged in
+    // Check if user is already logged in and handle device restrictions
     useEffect(() => {
         let authCheckTimeout;
         
         const unsubscribe = onAuthChange(async (user) => {
-            console.log('[AUTH PAGE] Auth state changed, user:', user?.email || 'none');
-            
-            // Check flags
-            const wasProcessing = sessionStorage.getItem('processingGoogleRedirect');
+            // If no user but recent login attempt, wait a bit
             const loginAttempt = localStorage.getItem('googleLoginAttempt');
-            const timeSinceAttempt = loginAttempt ? Date.now() - parseInt(loginAttempt) : null;
+            const timeSince = loginAttempt ? Date.now() - parseInt(loginAttempt) : null;
             
-            setDebugInfo(`Auth: ${user?.email || 'none'} | Flag: ${wasProcessing || 'no'} | Attempt: ${timeSinceAttempt ? timeSinceAttempt + 'ms ago' : 'none'}`);
-            
-            // If no user but we were expecting one (recent login attempt), wait a bit
-            if (!user && timeSinceAttempt && timeSinceAttempt < 15000) {
-                console.log('[AUTH PAGE] No user yet but recent login attempt, waiting...');
-                setDebugInfo(prev => prev + ' | Waiting for auth...');
-                
-                // Wait 2 seconds and check again
-                authCheckTimeout = setTimeout(() => {
-                    console.log('[AUTH PAGE] Timeout - checking auth.currentUser');
+            if (!user && timeSince && timeSince < 15000) {
+                // Wait 2 seconds for auth to settle
+                authCheckTimeout = setTimeout(async () => {
                     const currentUser = auth.currentUser;
                     if (currentUser) {
-                        console.log('[AUTH PAGE] Found user after timeout:', currentUser.email);
-                        // Manually trigger the auth flow
-                        handleAuthUser(currentUser, wasProcessing, timeSinceAttempt);
+                        await handleAuthUser(currentUser);
                     } else {
-                        console.log('[AUTH PAGE] Still no user after timeout');
-                        setDebugInfo(prev => prev + ' | Login failed/cancelled');
                         sessionStorage.removeItem('processingGoogleRedirect');
                         localStorage.removeItem('googleLoginAttempt');
                         setCheckingAuth(false);
@@ -102,7 +77,7 @@ export default function AuthPage() {
             }
             
             if (user) {
-                await handleAuthUser(user, wasProcessing, timeSinceAttempt);
+                await handleAuthUser(user);
             } else {
                 setCheckingAuth(false);
             }
@@ -114,26 +89,18 @@ export default function AuthPage() {
         };
     }, [navigate]);
     
-    // Separate function to handle authenticated user
-    const handleAuthUser = async (user, wasProcessing, timeSinceAttempt) => {
-        console.log('[AUTH PAGE] Handling auth user:', user.email);
+    // Handle authenticated user with device check
+    const handleAuthUser = async (user) => {
+        const loginAttempt = localStorage.getItem('googleLoginAttempt');
+        const timeSince = loginAttempt ? Date.now() - parseInt(loginAttempt) : null;
+        const isRecentLogin = timeSince && timeSince < 15000;
         
-        // Check if this is from a recent Google login (within last 15 seconds)
-        const isRecentLogin = timeSinceAttempt && timeSinceAttempt < 15000;
-        
-        console.log('[AUTH PAGE] Was processing redirect:', wasProcessing);
-        console.log('[AUTH PAGE] Is recent login:', isRecentLogin);
-        
-        if (wasProcessing || isRecentLogin) {
-            // This is a new Google login - need to check device
-            console.log('[AUTH PAGE] Processing new Google login');
+        if (isRecentLogin) {
+            // New Google login - check device
             sessionStorage.removeItem('processingGoogleRedirect');
             localStorage.removeItem('googleLoginAttempt');
             
-            setDebugInfo(prev => prev + ' | Processing new login...');
-            
-            // Import Firebase functions
-            const { getDoc, doc } = await import('firebase/firestore');
+            const { getDoc, doc, collection, query, where, getDocs } = await import('firebase/firestore');
             const { db } = await import('../firebase/config');
             const { getDeviceInfo } = await import('../utils/deviceFingerprint');
             const { logOut } = await import('../firebase/auth');
@@ -142,16 +109,9 @@ export default function AuthPage() {
             const userDoc = await getDoc(doc(db, 'users', docId));
             
             if (!userDoc.exists()) {
-                console.log('[AUTH PAGE] New user, checking device...');
-                setDebugInfo(prev => prev + ' | New user, checking device...');
-                
-                // Get device info
+                // New user - check device
                 const deviceInfo = await getDeviceInfo();
                 
-                // Check if device already used
-                const { collection, query, where, getDocs } = await import('firebase/firestore');
-                
-                // Check by fingerprint
                 const fingerprintQuery = query(
                     collection(db, 'users'),
                     where('deviceFingerprint', '==', deviceInfo.fingerprint)
@@ -159,30 +119,16 @@ export default function AuthPage() {
                 const fingerprintDocs = await getDocs(fingerprintQuery);
                 
                 if (!fingerprintDocs.empty) {
-                    const errorMsg = 'This device has already been used to create an account. Only one free account per device is allowed.';
-                    console.log('[AUTH PAGE] Device already used!');
-                    setDebugInfo(prev => prev + ' | DEVICE ALREADY USED!');
-                    
-                    // Store error and sign out
-                    localStorage.setItem('authError', errorMsg);
+                    // Device already used
                     await logOut();
-                    
-                    // Show error immediately
-                    alert('DEVICE ERROR: ' + errorMsg);
-                    showToast('⚠️ ' + errorMsg + '\n\n💡 Tip: If you already have an account, please login with your original email and password.', 'error', 15000);
+                    showToast('⚠️ This device has already been used to create an account. Only one free account per device is allowed.\n\n💡 If you have an existing account, please login with your email and password.', 'error', 15000);
                     setCheckingAuth(false);
                     return;
                 }
-                
-                console.log('[AUTH PAGE] Device check passed');
-                setDebugInfo(prev => prev + ' | Device OK');
-            } else {
-                console.log('[AUTH PAGE] Existing user');
-                setDebugInfo(prev => prev + ' | Existing user');
             }
         }
         
-        // User is logged in, redirect to dashboard
+        // Redirect to dashboard
         navigate('/dashboard', { replace: true });
     };
 
@@ -334,43 +280,31 @@ export default function AuthPage() {
     };
 
     const handleGoogleLogin = async () => {
-        console.log('[AUTH PAGE] Google login clicked');
-        
-        // Clear any previous errors
+        // Clear previous attempts
         localStorage.removeItem('authError');
-        
-        // Set flag BEFORE calling signInWithGoogle
         sessionStorage.setItem('processingGoogleRedirect', 'true');
         localStorage.setItem('googleLoginAttempt', Date.now().toString());
         
-        setDebugInfo('Google login clicked, flag set');
         setLoading(true);
         
         try {
             const result = await signInWithGoogle();
-            console.log('[AUTH PAGE] Google login result:', result);
             
             if (result.redirecting) {
-                // Mobile redirect in progress
-                console.log('[AUTH PAGE] Redirecting to Google...');
                 showToast('🔄 Redirecting to Google...', 'success', 2000);
-                // Keep loading true during redirect
                 return;
             }
+            
             if (result.success) {
-                console.log('[AUTH PAGE] Google login success');
-                showToast('✅ Success! Redirecting to dashboard...', 'success', 2000);
+                showToast('✅ Success! Redirecting...', 'success', 2000);
                 setTimeout(() => navigate('/dashboard'), 1000);
             } else {
-                console.log('[AUTH PAGE] Google login failed:', result.error);
                 sessionStorage.removeItem('processingGoogleRedirect');
                 localStorage.removeItem('googleLoginAttempt');
-                let errorMessage = '⚠️ ' + result.error + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
-                showToast(errorMessage, 'error', 12000);
+                showToast('⚠️ ' + result.error, 'error', 10000);
                 setLoading(false);
             }
         } catch (error) {
-            console.error('[AUTH PAGE] Google login error:', error);
             sessionStorage.removeItem('processingGoogleRedirect');
             localStorage.removeItem('googleLoginAttempt');
             showToast('❌ ' + (error.message || 'An error occurred'), 'error', 8000);
@@ -392,25 +326,6 @@ export default function AuthPage() {
 
             {/* Navbar */}
             <Navbar />
-
-            {/* Debug Info - Only visible in development */}
-            {debugInfo && (
-                <div className="fixed bottom-4 left-4 right-4 z-[400] bg-black/90 text-white text-xs p-3 rounded-lg font-mono max-h-32 overflow-auto">
-                    <div className="flex justify-between items-start mb-1">
-                        <span className="font-bold text-yellow-400">Debug Info:</span>
-                        <button 
-                            onClick={() => setDebugInfo('')}
-                            className="text-red-400 hover:text-red-300"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                    <div className="whitespace-pre-wrap break-all">{debugInfo}</div>
-                    <div className="mt-2 pt-2 border-t border-white/20">
-                        <div>localStorage.authError: {localStorage.getItem('authError') || 'none'}</div>
-                    </div>
-                </div>
-            )}
 
             {/* Main Content */}
             <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-4">
