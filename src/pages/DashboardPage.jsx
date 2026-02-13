@@ -8,21 +8,32 @@ import {
     LogOut,
     Download,
     Mic2,
-    Users,
     Gift,
-    Share2,
-    Check
+    Check,
+    Key,
+    Save,
+    Eye,
+    EyeOff,
+    AlertCircle,
+    Mail
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { onAuthChange, logOut } from '../firebase/auth';
+import { onAuthChange, logOut, resendVerificationEmail } from '../firebase/auth';
 import { getUserTime, formatTime, addPurchasedTime } from '../utils/timeSync';
 import { initiatePayment } from '../utils/razorpay';
+import { saveUserAPIKeys, validateAPIKeys } from '../utils/apiKeyManager';
 
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const [mistralKey, setMistralKey] = useState('');
+    const [geminiKey, setGeminiKey] = useState('');
+    const [showMistralKey, setShowMistralKey] = useState(false);
+    const [showGeminiKey, setShowGeminiKey] = useState(false);
+    const [savingKeys, setSavingKeys] = useState(false);
+    const [resendingEmail, setResendingEmail] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -31,6 +42,12 @@ export default function DashboardPage() {
                 setUser(currentUser);
                 const timeData = await getUserTime(currentUser.email);
                 setUserData(timeData);
+                
+                // Load existing API keys if available
+                if (timeData?.api_keys) {
+                    setMistralKey(timeData.api_keys.mistral || '');
+                    setGeminiKey(timeData.api_keys.gemini || '');
+                }
             } else {
                 navigate('/login');
             }
@@ -66,6 +83,8 @@ export default function DashboardPage() {
         if (!user) return;
 
         const seconds = hours * 3600;
+        const plan = amount === 300 ? 'basic' : 'premium';
+        
         await initiatePayment(
             amount,
             packageName,
@@ -80,7 +99,8 @@ export default function DashboardPage() {
                     seconds,
                     amount,
                     packageName,
-                    paymentId
+                    paymentId,
+                    plan
                 );
                 
                 if (success) {
@@ -96,6 +116,75 @@ export default function DashboardPage() {
                 alert('Payment failed: ' + error);
             }
         );
+    };
+
+    const handleSaveAPIKeys = async () => {
+        if (!user) return;
+
+        // Validate keys
+        const validation = validateAPIKeys(mistralKey, geminiKey);
+        if (!validation.valid) {
+            alert('❌ ' + validation.errors.join('\n'));
+            return;
+        }
+
+        setSavingKeys(true);
+        const result = await saveUserAPIKeys(user.email, mistralKey, geminiKey);
+        setSavingKeys(false);
+
+        if (result.success) {
+            alert('✅ API keys saved successfully!');
+            // Refresh user data
+            const updatedData = await getUserTime(user.email);
+            setUserData(updatedData);
+        } else {
+            alert('❌ Failed to save API keys: ' + result.error);
+        }
+    };
+
+    const handleExportHistory = () => {
+        if (!userData?.payment_history || userData.payment_history.length === 0) {
+            alert('No payment history to export');
+            return;
+        }
+
+        // Create CSV content
+        const headers = ['Date', 'Plan/Package', 'Amount (₹)', 'Status', 'Payment ID'];
+        const rows = userData.payment_history.map(row => [
+            new Date(row.date).toLocaleDateString(),
+            row.package,
+            row.amount,
+            'Success',
+            row.payment_id || 'N/A'
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `payment_history_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleResendVerification = async () => {
+        setResendingEmail(true);
+        const result = await resendVerificationEmail();
+        setResendingEmail(false);
+        
+        if (result.success) {
+            alert('✅ Verification email sent! Please check your inbox (and spam folder).');
+        } else {
+            alert('❌ ' + result.error);
+        }
     };
 
     if (loading) {
@@ -167,7 +256,175 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
+                {/* Email Verification Banner */}
+                {user && !user.emailVerified && (
+                    <div className="mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                                <AlertCircle className="w-6 h-6 text-yellow-400" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-white mb-2">Verify Your Email Address</h3>
+                                <p className="text-sm text-gray-300 mb-4">
+                                    Please verify your email address to unlock all features. We've sent a verification link to <span className="font-semibold text-yellow-400">{user.email}</span>
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    <button
+                                        onClick={handleResendVerification}
+                                        disabled={resendingEmail}
+                                        className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-700 text-white font-semibold px-4 py-2 rounded-xl transition-all disabled:cursor-not-allowed text-sm"
+                                    >
+                                        {resendingEmail ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Mail className="w-4 h-4" />
+                                                Resend Verification Email
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold px-4 py-2 rounded-xl transition-all border border-white/10 text-sm"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        I've Verified
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-3">
+                                    💡 Check your spam folder if you don't see the email
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    {/* API Key Settings - Only for Basic Plan */}
+                    {userData?.subscription_plan === 'basic' && (
+                        <div className="md:col-span-2 lg:col-span-3 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border border-yellow-500/20 rounded-[32px] p-8 glass">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                                    <Key className="w-6 h-6 text-yellow-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white">API Key Configuration</h3>
+                                    <p className="text-xs text-yellow-400 font-semibold">Basic Plan - Your API Keys Required</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 mb-6">
+                                <p className="text-sm text-yellow-200">
+                                    ⚠️ <span className="font-bold">Important:</span> You're on the {userData?.subscription_plan === 'basic' ? 'Basic' : 'Standard'} Plan. Please provide your own Mistral and Gemini API keys to use the desktop application.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Mistral API Key */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                        Mistral API Key <span className="text-red-400">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={showMistralKey ? 'text' : 'password'}
+                                            value={mistralKey}
+                                            onChange={(e) => setMistralKey(e.target.value)}
+                                            placeholder="Enter your Mistral API key"
+                                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-yellow-500/50 transition-colors pr-12"
+                                        />
+                                        <button
+                                            onClick={() => setShowMistralKey(!showMistralKey)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                        >
+                                            {showMistralKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-2">
+                                        Get your key from <a href="https://console.mistral.ai/" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">Mistral Console</a>
+                                    </p>
+                                </div>
+
+                                {/* Gemini API Key */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                        Gemini API Key <span className="text-red-400">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={showGeminiKey ? 'text' : 'password'}
+                                            value={geminiKey}
+                                            onChange={(e) => setGeminiKey(e.target.value)}
+                                            placeholder="Enter your Gemini API key"
+                                            className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-yellow-500/50 transition-colors pr-12"
+                                        />
+                                        <button
+                                            onClick={() => setShowGeminiKey(!showGeminiKey)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                        >
+                                            {showGeminiKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-2">
+                                        Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">Google AI Studio</a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                                <p className="text-xs text-slate-500">
+                                    {userData?.api_keys?.mistral && userData?.api_keys?.gemini ? (
+                                        <span className="text-emerald-400 flex items-center gap-2">
+                                            <Check size={14} /> API keys configured
+                                        </span>
+                                    ) : (
+                                        <span className="text-yellow-400">⚠️ API keys not configured - app won't work</span>
+                                    )}
+                                </p>
+                                <button
+                                    onClick={handleSaveAPIKeys}
+                                    disabled={savingKeys}
+                                    className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all disabled:cursor-not-allowed"
+                                >
+                                    {savingKeys ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={18} />
+                                            Save API Keys
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Premium Plan Badge */}
+                    {userData?.subscription_plan === 'premium' && (
+                        <div className="md:col-span-2 lg:col-span-3 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 border border-emerald-500/20 rounded-[32px] p-6 glass">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white">Premium Plan Active</h3>
+                                        <p className="text-xs text-emerald-400 font-semibold">Pre-configured API keys - No setup needed!</p>
+                                    </div>
+                                </div>
+                                <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">All Set ✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Time Balance */}
                     <div className="bg-white/[0.02] border border-white/5 rounded-[32px] p-8 glass hover:border-white/10 transition-colors relative overflow-hidden group">
@@ -210,6 +467,31 @@ export default function DashboardPage() {
                                     return `${percentage}% of ${formatTime(totalSeconds)} remaining`;
                                 })()}
                             </p>
+                            
+                            {/* Show trial mode badge */}
+                            {userData?.trial_mode && (
+                                <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                    <p className="text-xs text-emerald-400 font-semibold">
+                                        🎉 Premium Trial Active (2 Hours)
+                                    </p>
+                                    <p className="text-[10px] text-emerald-300 mt-1">
+                                        Purchase any plan to continue after trial
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {/* Show if user was referred */}
+                            {userData?.referred_by && userData?.total_purchased === 0 && (
+                                <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                                    <p className="text-xs text-blue-400 font-semibold flex items-center gap-2">
+                                        <Gift size={14} />
+                                        � Referred User Bonus
+                                    </p>
+                                    <p className="text-[10px] text-blue-300 mt-1">
+                                        Your referrer will get 30 min when you make your first purchase!
+                                    </p>
+                                </div>
+                            )}
                         </div>
                         <button onClick={() => handlePayment(300, 2, 'First Time - 2 Hours')} className="w-full bg-white text-slate-900 font-bold py-3.5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg">
                             <Plus size={18} />
@@ -295,7 +577,10 @@ export default function DashboardPage() {
                     <div className="md:col-span-2 lg:col-span-3 bg-white/[0.02] border border-white/5 rounded-[32px] p-8 glass hover:border-white/10 transition-colors">
                         <div className="flex justify-between items-center mb-8">
                             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Recent Billing</p>
-                            <button className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/5 flex items-center gap-1.5 transition-all">
+                            <button 
+                                onClick={handleExportHistory}
+                                className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/5 flex items-center gap-1.5 transition-all"
+                            >
                                 <ExternalLink size={12} />
                                 Export
                             </button>

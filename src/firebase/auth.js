@@ -5,11 +5,14 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
+  sendEmailVerification
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, query, collection, where, getDocs, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { auth, db } from './config';
 import { getDeviceInfo } from '../utils/deviceFingerprint';
+import { getReferralCodeFromURL, processReferral, trackReferralSource } from '../utils/referral';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -70,20 +73,32 @@ export const signUpWithEmail = async (email, password, displayName, referralCode
     // Update profile
     await updateProfile(user, { displayName });
 
+    // Send email verification
+    try {
+      await sendEmailVerification(user, {
+        url: window.location.origin + '/login',
+        handleCodeInApp: false
+      });
+      console.log('[AUTH] Verification email sent to:', email);
+    } catch (verifyError) {
+      console.error('[AUTH] Failed to send verification email:', verifyError);
+      // Don't fail signup if verification email fails
+    }
+
     // Create user document in Firestore with 2 hours free
     const docId = email.replace('@', '_at_').replace(/\./g, '_');
 
     let initialSeconds = 7200; // 2 hours free
-    let referralBonusApplied = false;
     let paymentHistory = [{
       amount: 0,
       seconds: 7200,
-      package: 'Welcome Bonus - 1 Free Interview',
+      package: 'Welcome Bonus - 2 Hours Premium Trial',
       date: new Date().toISOString(),
       payment_id: 'free_signup_' + Date.now(),
     }];
 
-    // Process Referral
+    // Store referral code for later (will reward referrer when user makes first purchase)
+    let referredBy = '';
     if (referralCode) {
       const usersRef = collection(db, 'users');
       const q = query(usersRef, where('referral_code', '==', referralCode.trim().toUpperCase()));
@@ -91,26 +106,14 @@ export const signUpWithEmail = async (email, password, displayName, referralCode
 
       if (!querySnapshot.empty) {
         const referrerDoc = querySnapshot.docs[0];
-        const referrerData = referrerDoc.data();
-
-        // Give 2 hours bonus to Referrer
-        await updateDoc(doc(db, 'users', referrerDoc.id), {
-          remaining_seconds: (referrerData.remaining_seconds || 0) + 7200,
-          referrals: [
-            ...(referrerData.referrals || []),
-            { email: user.email, name: displayName, date: new Date().toISOString() }
-          ]
-        });
-
-        // Give 2 hours bonus to New User
-        initialSeconds += 7200;
-        referralBonusApplied = true;
+        referredBy = referrerDoc.id; // Store referrer's doc ID
+        
         paymentHistory.push({
           amount: 0,
-          seconds: 7200,
-          package: 'Referral Bonus (Used code: ' + referralCode + ')',
+          seconds: 0,
+          package: 'Referred by: ' + referralCode,
           date: new Date().toISOString(),
-          payment_id: 'referral_bonus_' + Date.now(),
+          payment_id: 'referral_pending_' + Date.now(),
         });
       }
     }
@@ -123,14 +126,18 @@ export const signUpWithEmail = async (email, password, displayName, referralCode
       displayName: displayName,
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
-      remaining_seconds: initialSeconds,
+      remaining_seconds: initialSeconds, // 2 hours free (usable)
       total_purchased: 0,
       deviceFingerprint: deviceInfo.fingerprint,
       ipAddress: deviceInfo.ipAddress,
       deviceInfo: deviceInfo,
       referral_code: newUserReferralCode,
+      referred_by: referredBy, // Store who referred this user
       referrals: [],
-      payment_history: paymentHistory
+      payment_history: paymentHistory,
+      subscription_plan: 'premium', // Start with premium for 2 hours trial
+      trial_mode: true, // Mark as trial user
+      api_keys: { mistral: '', gemini: '' } // Empty by default
     });
 
     return { success: true, user };
@@ -178,15 +185,19 @@ export const signInWithGoogle = async () => {
         photoURL: user.photoURL || '',
         phoneNumber: user.phoneNumber || '',
         createdAt: serverTimestamp(),
-        remaining_seconds: 7200, // 2 hours free for new users (1 interview)
+        remaining_seconds: 7200, // 2 hours free for new users (Premium trial)
+        locked_referral_bonus: 0, // No locked bonus for Google signup
         total_purchased: 0, // Don't count free time - only actual purchases
         deviceFingerprint: deviceInfo.fingerprint,
         ipAddress: deviceInfo.ipAddress,
         deviceInfo: deviceInfo,
+        subscription_plan: 'premium', // Start with premium for trial
+        trial_mode: true, // Mark as trial user
+        api_keys: { mistral: '', gemini: '' }, // Empty by default
         payment_history: [{
           amount: 0,
           seconds: 7200,
-          package: 'Welcome Bonus - 1 Free Interview',
+          package: 'Welcome Bonus - 2 Hours Premium Trial',
           date: new Date().toISOString(),
           payment_id: 'free_google_' + Date.now(),
         }]
@@ -220,4 +231,64 @@ export const logOut = async () => {
 // Auth state observer
 export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
+};
+
+// Reset password
+export const resetPassword = async (email) => {
+  try {
+    // Configure action code settings
+    const actionCodeSettings = {
+      url: window.location.origin + '/login', // Redirect back to login after reset
+      handleCodeInApp: false
+    };
+    
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    console.log('[AUTH] Password reset email sent to:', email);
+    return { success: true };
+  } catch (error) {
+    console.error('[AUTH] Password reset error:', error);
+    
+    // User-friendly error messages
+    let errorMessage = error.message;
+    if (error.code === 'auth/user-not-found') {
+      errorMessage = 'No account found with this email address.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address format.';
+    } else if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Too many requests. Please try again later.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Resend verification email
+export const resendVerificationEmail = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      return { success: false, error: 'No user logged in' };
+    }
+    
+    if (user.emailVerified) {
+      return { success: false, error: 'Email already verified' };
+    }
+    
+    await sendEmailVerification(user, {
+      url: window.location.origin + '/login',
+      handleCodeInApp: false
+    });
+    
+    console.log('[AUTH] Verification email resent to:', user.email);
+    return { success: true };
+  } catch (error) {
+    console.error('[AUTH] Resend verification error:', error);
+    
+    let errorMessage = error.message;
+    if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Too many requests. Please wait a few minutes before trying again.';
+    }
+    
+    return { success: false, error: errorMessage };
+  }
 };

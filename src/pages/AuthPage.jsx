@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Mail, Lock, User, Check, AlertCircle, Gift } from 'lucide-react';
+import { Mail, Lock, User, Check, AlertCircle, Gift, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '../firebase/auth';
+import { signUpWithEmail, signInWithEmail, signInWithGoogle, resetPassword } from '../firebase/auth';
+import Navbar from '../components/home/Navbar';
 
 export default function AuthPage() {
     const [activeTab, setActiveTab] = useState('login');
     const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState({ show: false, message: '' });
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -16,18 +19,70 @@ export default function AuthPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        showToast('Welcome back!');
+        // Get referral code from URL or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRef = urlParams.get('ref');
+        
+        let referralCode = '';
+        
+        if (urlRef) {
+            // URL has priority
+            referralCode = urlRef;
+        } else {
+            // Check localStorage
+            const storedRef = localStorage.getItem('referralCode');
+            const storedExpiry = localStorage.getItem('referralExpiry');
+            
+            if (storedRef && storedExpiry) {
+                const expiryTime = parseInt(storedExpiry);
+                if (Date.now() < expiryTime) {
+                    // Referral code is still valid
+                    referralCode = storedRef;
+                } else {
+                    // Expired, clear it
+                    localStorage.removeItem('referralCode');
+                    localStorage.removeItem('referralExpiry');
+                }
+            }
+        }
+        
+        if (referralCode) {
+            setFormData(prev => ({ ...prev, referralCode: referralCode }));
+            showToast(`🎁 Using referral code: ${referralCode.toUpperCase()}`, 'success');
+        } else {
+            showToast('Welcome back!', 'success');
+        }
     }, []);
 
-    const showToast = (message) => {
-        setToast({ show: true, message });
-        setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    const showToast = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
     };
 
     const handleTabSwitch = (tab) => {
         setActiveTab(tab);
-        showToast(tab === 'login' ? 'Welcome back!' : 'Join the team!');
-        setFormData({ name: '', email: '', password: '' });
+        showToast(tab === 'login' ? 'Welcome back!' : 'Start your journey!', 'success');
+        setFormData({ name: '', email: '', password: '', referralCode: formData.referralCode });
+    };
+
+    const handleForgotPassword = async (e) => {
+        e.preventDefault();
+        if (!resetEmail) {
+            showToast('Please enter your email address', 'error');
+            return;
+        }
+        
+        setLoading(true);
+        const result = await resetPassword(resetEmail);
+        setLoading(false);
+        
+        if (result.success) {
+            showToast('✅ Password reset email sent! Check your inbox.', 'success');
+            setShowForgotPassword(false);
+            setResetEmail('');
+        } else {
+            showToast('❌ ' + result.error, 'error');
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -43,13 +98,34 @@ export default function AuthPage() {
             }
 
             if (result.success) {
-                showToast('Success! Redirecting...');
+                showToast('✅ Success! Redirecting...', 'success');
+                
+                // Clear referral code from localStorage after successful signup
+                if (activeTab === 'signup') {
+                    localStorage.removeItem('referralCode');
+                    localStorage.removeItem('referralExpiry');
+                }
+                
                 setTimeout(() => navigate('/dashboard'), 1000);
             } else {
-                showToast(result.error || 'Authentication failed');
+                // Show user-friendly error messages
+                let errorMessage = result.error || 'Authentication failed';
+                
+                // Handle specific error cases
+                if (errorMessage.includes('device') || errorMessage.includes('network')) {
+                    errorMessage = '⚠️ ' + errorMessage + '\n\nIf you forgot your password, use "Forgot Password" to reset it.';
+                } else if (errorMessage.includes('email-already-in-use')) {
+                    errorMessage = '⚠️ This email is already registered. Please login or use "Forgot Password" if you forgot your credentials.';
+                } else if (errorMessage.includes('wrong-password') || errorMessage.includes('user-not-found')) {
+                    errorMessage = '❌ Invalid email or password. Please try again or use "Forgot Password".';
+                } else if (errorMessage.includes('weak-password')) {
+                    errorMessage = '⚠️ Password should be at least 6 characters long.';
+                }
+                
+                showToast(errorMessage, 'error');
             }
         } catch (error) {
-            showToast(error.message || 'An error occurred');
+            showToast('❌ ' + (error.message || 'An error occurred'), 'error');
         } finally {
             setLoading(false);
         }
@@ -60,71 +136,86 @@ export default function AuthPage() {
         try {
             const result = await signInWithGoogle();
             if (result.success) {
-                showToast('Success! Redirecting...');
+                showToast('✅ Success! Redirecting...', 'success');
                 setTimeout(() => navigate('/dashboard'), 1000);
             } else {
-                showToast(result.error || 'Google authentication failed');
+                let errorMessage = result.error || 'Google authentication failed';
+                if (errorMessage.includes('device') || errorMessage.includes('network')) {
+                    errorMessage = '⚠️ ' + errorMessage;
+                }
+                showToast(errorMessage, 'error');
             }
         } catch (error) {
-            showToast(error.message || 'An error occurred');
+            showToast('❌ ' + (error.message || 'An error occurred'), 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#05080f] text-white font-sans selection:bg-blue-500/30">
+        <div className="relative min-h-screen w-full flex flex-col overflow-hidden bg-[#05080f] text-white font-sans selection:bg-blue-500/30">
 
-            {/* Background Blobs (Matches HomePage) */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="blob bg-blue-600/40 w-[600px] h-[600px] rounded-full -top-40 -left-20 mix-blend-screen filter blur-[80px] animate-pulse"></div>
-                <div className="blob bg-emerald-500/30 w-[500px] h-[500px] rounded-full -bottom-20 -right-20 mix-blend-screen filter blur-[80px] animation-delay-2000"></div>
-            </div>
+            {/* Navbar */}
+            <Navbar />
+
+            {/* Main Content */}
+            <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-4">
+                {/* Background Blobs (Matches HomePage) */}
+                <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                    <div className="blob bg-blue-600/40 w-[600px] h-[600px] rounded-full -top-40 -left-20 mix-blend-screen filter blur-[80px] animate-pulse"></div>
+                    <div className="blob bg-emerald-500/30 w-[500px] h-[500px] rounded-full -bottom-20 -right-20 mix-blend-screen filter blur-[80px] animation-delay-2000"></div>
+                </div>
 
             {/* Toast Notification */}
-            <div className={`fixed top-8 right-8 z-50 transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
-                <div className="bg-white/90 backdrop-blur-md text-slate-900 px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    {toast.message}
+            <div className={`fixed top-24 right-8 z-[300] transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
+                <div className={`backdrop-blur-md px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center gap-2 ${
+                    toast.type === 'error' 
+                        ? 'bg-red-500/90 text-white' 
+                        : 'bg-white/90 text-slate-900'
+                }`}>
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${
+                        toast.type === 'error' ? 'bg-white' : 'bg-emerald-500'
+                    }`}></div>
+                    <span className="whitespace-pre-line">{toast.message}</span>
                 </div>
             </div>
 
             {/* Main Card */}
-            <div className="relative z-10 w-full max-w-[440px] p-8 mx-4">
-                <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-2xl"></div>
-                <div className="relative flex flex-col gap-6">
+            <div className="relative z-10 w-full max-w-[420px] p-6 mx-4">
+                <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/10 shadow-2xl"></div>
+                <div className="relative flex flex-col gap-5">
 
                     {/* Header */}
-                    <Link to="/" className="flex flex-col items-center gap-4 mb-2 hover:opacity-80 transition-opacity">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 relative group overflow-hidden">
+                    <Link to="/" className="flex flex-col items-center gap-3 mb-2 hover:opacity-80 transition-opacity">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 relative group overflow-hidden">
                             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                            <div className="w-8 h-8 border-r-4 border-b-4 border-white/90 rounded-br-xl transform -rotate-45 -mt-1 -ml-1"></div>
+                            <div className="w-6 h-6 border-r-4 border-b-4 border-white/90 rounded-br-xl transform -rotate-45 -mt-1 -ml-1"></div>
                         </div>
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold tracking-tight mb-1">Interview.AI</h1>
-                            <p className="text-slate-400 text-sm">Your AI co-pilot for hiring.</p>
+                            <h1 className="text-xl font-bold tracking-tight mb-1">Interview.AI</h1>
+                            <p className="text-slate-400 text-xs">Crack any interview with AI assistance.</p>
                         </div>
                     </Link>
 
                     {/* Toggle */}
-                    <div className="relative bg-slate-950/50 p-1 rounded-2xl flex">
-                        <div className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-slate-800/80 rounded-xl border border-white/5 shadow-sm transition-all duration-300 ease-out ${activeTab === 'login' ? 'left-1' : 'left-[calc(50%+2px)]'}`}></div>
+                    <div className="relative bg-slate-950/50 p-1 rounded-xl flex">
+                        <div className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-slate-800/80 rounded-lg border border-white/5 shadow-sm transition-all duration-300 ease-out ${activeTab === 'login' ? 'left-1' : 'left-[calc(50%+2px)]'}`}></div>
                         <button
                             onClick={() => handleTabSwitch('login')}
-                            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl relative z-10 transition-colors duration-300 ${activeTab === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`flex-1 py-2 text-sm font-semibold rounded-lg relative z-10 transition-colors duration-300 ${activeTab === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             Log In
                         </button>
                         <button
                             onClick={() => handleTabSwitch('signup')}
-                            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl relative z-10 transition-colors duration-300 ${activeTab === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`flex-1 py-2 text-sm font-semibold rounded-lg relative z-10 transition-colors duration-300 ${activeTab === 'signup' ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             Sign Up
                         </button>
                     </div>
 
                     {/* Forms Container */}
-                    <div className="relative min-h-[320px] overflow-hidden">
+                    <div className="relative min-h-[380px] overflow-hidden">
 
                         {/* Login Form */}
                         <div className={`absolute inset-0 w-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform ${activeTab === 'login' ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 -translate-x-[20%] pointer-events-none'}`}>
@@ -166,13 +257,19 @@ export default function AuthPage() {
                                         </div>
                                         <span className="group-hover:text-slate-300 transition-colors">Remember me</span>
                                     </label>
-                                    <a href="#" className="hover:text-blue-400 transition-colors">Forgot password?</a>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowForgotPassword(true)}
+                                        className="hover:text-blue-400 transition-colors"
+                                    >
+                                        Forgot password?
+                                    </button>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold py-4 rounded-2xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-blue-500/25 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-blue-500/25 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                                 >
                                     {loading ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -234,16 +331,21 @@ export default function AuthPage() {
                                             type="text"
                                             placeholder="Referral Code (Optional)"
                                             value={formData.referralCode}
-                                            onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
+                                            onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })}
+                                            className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300 uppercase"
                                         />
+                                        {formData.referralCode && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-400 text-xs font-bold">
+                                                ✓ Applied
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-4 rounded-2xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                                    className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform active:scale-[0.98] shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                                 >
                                     {loading ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -262,7 +364,7 @@ export default function AuthPage() {
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
 
-                    <button onClick={handleGoogleLogin} disabled={loading} className="w-full bg-slate-950/50 hover:bg-slate-900 border border-transparent hover:border-white/5 text-white text-sm font-medium py-3.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onClick={handleGoogleLogin} disabled={loading} className="w-full bg-slate-950/50 hover:bg-slate-900 border border-transparent hover:border-white/5 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all duration-300" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
@@ -273,6 +375,79 @@ export default function AuthPage() {
                     </button>
                 </div>
             </div>
+            </div>
+
+            {/* Forgot Password Modal */}
+            {showForgotPassword && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowForgotPassword(false)}>
+                    <div className="bg-slate-900 rounded-3xl p-8 max-w-md w-full border border-white/10 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+                        <button 
+                            onClick={() => setShowForgotPassword(false)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                                <Lock className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold text-white">Reset Password</h3>
+                                <p className="text-xs text-gray-400">We'll send you a reset link</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleForgotPassword} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                                    Email Address
+                                </label>
+                                <div className="group relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-blue-400">
+                                        <Mail size={20} />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        value={resetEmail}
+                                        onChange={(e) => setResetEmail(e.target.value)}
+                                        className="w-full bg-slate-950/50 border border-white/10 focus:border-blue-500/50 focus:bg-slate-900/80 rounded-xl py-3 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                                <p className="text-xs text-blue-300">
+                                    💡 Enter your email address and we'll send you a link to reset your password.
+                                </p>
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowForgotPassword(false)}
+                                    className="flex-1 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 rounded-xl transition-all border border-white/10"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {loading ? (
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    ) : (
+                                        'Send Reset Link'
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

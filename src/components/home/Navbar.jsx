@@ -1,52 +1,83 @@
-import { Link } from 'react-router-dom';
-import { Mic, Download } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Mic, Download, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { onAuthChange, logOut } from '../../firebase/auth';
 
 export default function Navbar() {
-    const scrollToSection = (id) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const unsubscribe = onAuthChange((currentUser) => {
+            setUser(currentUser);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await logOut();
+        navigate('/');
+    };
+
+    const handleNavigation = (sectionId) => {
+        // If already on homepage, just scroll
+        if (location.pathname === '/') {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else {
+            // Navigate to homepage with hash
+            navigate(`/#${sectionId}`);
+            // After navigation, scroll to section
+            setTimeout(() => {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
         }
     };
 
     return (
-        <nav className="fixed w-full z-50 top-0 border-b border-white/5 bg-[#05080f]/80 backdrop-blur-md">
+        <nav className="fixed w-full z-[100] top-0 border-b border-white/5 bg-[#05080f]/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    <div className="flex items-center gap-3">
+                    <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <Mic className="w-6 h-6 text-white" />
                         </div>
                         <span className="font-bold text-xl tracking-tight text-white">Interview.AI</span>
-                    </div>
+                    </Link>
 
                     <div className="hidden md:flex items-center space-x-8">
                         <button
-                            onClick={() => scrollToSection('features')}
+                            onClick={() => handleNavigation('features')}
                             className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                         >
                             Features
                         </button>
                         <button
-                            onClick={() => scrollToSection('how-it-works')}
+                            onClick={() => handleNavigation('how-it-works')}
                             className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                         >
                             How it Works
                         </button>
                         <button
-                            onClick={() => scrollToSection('shortcuts')}
+                            onClick={() => handleNavigation('shortcuts')}
                             className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                         >
                             Shortcuts
                         </button>
                         <button
-                            onClick={() => scrollToSection('pricing')}
+                            onClick={() => handleNavigation('pricing')}
                             className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                         >
                             Pricing
                         </button>
                         <button
-                            onClick={() => scrollToSection('faq')}
+                            onClick={() => handleNavigation('faq')}
                             className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
                         >
                             FAQ
@@ -54,9 +85,24 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                            Log In
-                        </Link>
+                        {user ? (
+                            <>
+                                <Link to="/dashboard" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                                    Dashboard
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                                Log In
+                            </Link>
+                        )}
                         <a
                             href="https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe"
                             download="InstantInterview.exe"

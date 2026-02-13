@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Navbar from '../components/home/Navbar';
 import Hero from '../components/home/Hero';
 import DemoInterface from '../components/home/DemoInterface';
@@ -8,6 +9,19 @@ import Pricing from '../components/home/Pricing';
 import Footer from '../components/home/Footer';
 
 export default function HomePage() {
+    // Store referral code in localStorage when user lands on homepage
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref');
+        if (ref) {
+            // Store referral code for 24 hours
+            const expiryTime = Date.now() + (24 * 60 * 60 * 1000);
+            localStorage.setItem('referralCode', ref);
+            localStorage.setItem('referralExpiry', expiryTime.toString());
+            console.log('[REFERRAL] Stored referral code:', ref);
+        }
+    }, []);
+
     return (
         <div className="relative overflow-hidden w-full">
             {/* Background Blobs */}
