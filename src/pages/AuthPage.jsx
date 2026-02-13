@@ -19,6 +19,19 @@ export default function AuthPage() {
     });
     const navigate = useNavigate();
 
+    // Check for stored auth error FIRST (before anything else)
+    useEffect(() => {
+        const storedError = localStorage.getItem('authError');
+        if (storedError) {
+            console.log('[AUTH PAGE] Found stored error:', storedError);
+            localStorage.removeItem('authError');
+            
+            // Show error immediately
+            const errorMessage = '⚠️ ' + storedError + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
+            showToast(errorMessage, 'error', 12000);
+        }
+    }, []);
+
     // Check if user is already logged in
     useEffect(() => {
         const unsubscribe = onAuthChange((user) => {
@@ -35,26 +48,27 @@ export default function AuthPage() {
     // Handle Google redirect result on page load
     useEffect(() => {
         const checkRedirect = async () => {
-            setLoading(true);
-            const result = await handleGoogleRedirect();
+            console.log('[AUTH PAGE] Checking Google redirect...');
             
-            if (result) {
-                if (result.success) {
-                    showToast('✅ Success! Redirecting to dashboard...', 'success');
-                    setTimeout(() => navigate('/dashboard'), 1500);
-                } else if (result.error) {
-                    // Show user-friendly error message
-                    let errorMessage = result.error;
-                    
-                    if (errorMessage.includes('device') || errorMessage.includes('network')) {
-                        errorMessage = '⚠️ ' + errorMessage + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
+            try {
+                const result = await handleGoogleRedirect();
+                console.log('[AUTH PAGE] Redirect result:', result);
+                
+                if (result) {
+                    if (result.success) {
+                        console.log('[AUTH PAGE] Success, redirecting to dashboard');
+                        showToast('✅ Success! Redirecting to dashboard...', 'success', 2000);
+                        setTimeout(() => navigate('/dashboard'), 1000);
+                    } else if (result.error) {
+                        console.log('[AUTH PAGE] Error from redirect:', result.error);
+                        // Error already stored in localStorage and shown by first useEffect
                     }
-                    
-                    showToast(errorMessage, 'error');
-                    setLoading(false);
+                } else {
+                    console.log('[AUTH PAGE] No redirect result');
                 }
-            } else {
-                setLoading(false);
+            } catch (error) {
+                console.error('[AUTH PAGE] Error checking redirect:', error);
+                showToast('❌ An error occurred: ' + error.message, 'error', 8000);
             }
         };
         checkRedirect();
@@ -96,9 +110,9 @@ export default function AuthPage() {
         }
     }, []);
 
-    const showToast = (message, type = 'success') => {
+    const showToast = (message, type = 'success', duration = 6000) => {
         setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), duration);
     };
 
     const handleTabSwitch = (tab) => {
@@ -174,30 +188,36 @@ export default function AuthPage() {
     };
 
     const handleGoogleLogin = async () => {
+        console.log('[AUTH PAGE] Google login clicked');
+        
+        // Clear any previous errors
+        localStorage.removeItem('authError');
         setLoading(true);
+        
         try {
             const result = await signInWithGoogle();
+            console.log('[AUTH PAGE] Google login result:', result);
+            
             if (result.redirecting) {
-                // Mobile redirect in progress, show loading message
-                showToast('🔄 Redirecting to Google...', 'success');
-                // Don't set loading to false, keep it true during redirect
+                // Mobile redirect in progress
+                console.log('[AUTH PAGE] Redirecting to Google...');
+                showToast('🔄 Redirecting to Google...', 'success', 2000);
+                // Keep loading true during redirect
                 return;
             }
             if (result.success) {
-                showToast('✅ Success! Redirecting to dashboard...', 'success');
-                setTimeout(() => navigate('/dashboard'), 1500);
+                console.log('[AUTH PAGE] Google login success');
+                showToast('✅ Success! Redirecting to dashboard...', 'success', 2000);
+                setTimeout(() => navigate('/dashboard'), 1000);
             } else {
-                let errorMessage = result.error || 'Google authentication failed';
-                
-                if (errorMessage.includes('device') || errorMessage.includes('network')) {
-                    errorMessage = '⚠️ ' + errorMessage + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
-                }
-                
-                showToast(errorMessage, 'error');
+                console.log('[AUTH PAGE] Google login failed:', result.error);
+                let errorMessage = '⚠️ ' + result.error + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
+                showToast(errorMessage, 'error', 12000);
                 setLoading(false);
             }
         } catch (error) {
-            showToast('❌ ' + (error.message || 'An error occurred'), 'error');
+            console.error('[AUTH PAGE] Google login error:', error);
+            showToast('❌ ' + (error.message || 'An error occurred'), 'error', 8000);
             setLoading(false);
         }
     };
@@ -226,16 +246,16 @@ export default function AuthPage() {
                 </div>
 
             {/* Toast Notification */}
-            <div className={`fixed top-24 right-8 z-[300] transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
-                <div className={`backdrop-blur-md px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center gap-2 ${
+            <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[300] transition-all duration-300 transform max-w-[90vw] sm:max-w-md ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
+                <div className={`backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl font-semibold text-sm flex items-start gap-3 ${
                     toast.type === 'error' 
-                        ? 'bg-red-500/90 text-white' 
-                        : 'bg-white/90 text-slate-900'
+                        ? 'bg-red-500/95 text-white border-2 border-red-300' 
+                        : 'bg-white/95 text-slate-900 border-2 border-white'
                 }`}>
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    <div className={`w-3 h-3 rounded-full animate-pulse flex-shrink-0 mt-0.5 ${
                         toast.type === 'error' ? 'bg-white' : 'bg-emerald-500'
                     }`}></div>
-                    <span className="whitespace-pre-line">{toast.message}</span>
+                    <span className="whitespace-pre-line text-left flex-1">{toast.message}</span>
                 </div>
             </div>
 

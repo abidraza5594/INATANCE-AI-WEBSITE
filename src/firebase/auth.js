@@ -182,17 +182,22 @@ const processGoogleUser = async (user) => {
       if (!deviceCheck.allowed) {
         console.log('[AUTH] Device already used:', deviceCheck.reason);
         
+        // Store error in localStorage for immediate display
+        localStorage.setItem('authError', deviceCheck.reason);
+        
         // Delete the auth account since we can't allow signup
         try {
           await user.delete();
           console.log('[AUTH] Deleted unauthorized user account');
         } catch (deleteError) {
           console.error('[AUTH] Failed to delete user:', deleteError);
+          // Force sign out if delete fails
+          await signOut(auth);
         }
         
         return { 
           success: false, 
-          error: '⚠️ ' + deviceCheck.reason + '\n\n💡 If you already have an account with a different email, please login using that email and password instead of Google login.'
+          error: deviceCheck.reason
         };
       }
 
@@ -243,6 +248,7 @@ const processGoogleUser = async (user) => {
     return { success: true, user };
   } catch (error) {
     console.error('[AUTH] Error processing Google user:', error);
+    localStorage.setItem('authError', error.message);
     return { success: false, error: error.message };
   }
 };
