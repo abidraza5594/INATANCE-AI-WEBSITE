@@ -251,9 +251,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold text-white">API Key Configuration</h3>
-                                    <p className="text-xs text-yellow-400 font-semibold">
-                                        {userData?.subscription_plan === 'basic' ? 'Basic Plan' : 'Standard Plan'} - Your API Keys Required
-                                    </p>
+                                    <p className="text-xs text-yellow-400 font-semibold">Basic & Standard Plans - Your API Keys Required</p>
                                 </div>
                             </div>
 
