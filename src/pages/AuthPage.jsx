@@ -21,31 +21,46 @@ export default function AuthPage() {
     });
     const navigate = useNavigate();
 
-    // Check for stored auth error FIRST (before anything else)
+    // AGGRESSIVE CHECK: Check on every page load if user tried to login
     useEffect(() => {
-        console.log('[AUTH PAGE] Component mounted, checking for stored error...');
-        const storedError = localStorage.getItem('authError');
-        console.log('[AUTH PAGE] Stored error:', storedError);
+        const checkLoginAttempt = async () => {
+            const loginAttempt = localStorage.getItem('googleLoginAttempt');
+            if (!loginAttempt) return;
+            
+            const timeSince = Date.now() - parseInt(loginAttempt);
+            
+            // If login attempt was recent (within 30 seconds)
+            if (timeSince < 30000) {
+                console.log('[AUTH PAGE] Recent login attempt detected, checking for issues...');
+                setDebugInfo(`Recent login attempt ${timeSince}ms ago, checking...`);
+                
+                // Wait a bit for Firebase to settle
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Check if user is logged in now
+                const currentUser = auth.currentUser;
+                console.log('[AUTH PAGE] Current user after wait:', currentUser?.email || 'none');
+                
+                if (!currentUser) {
+                    // Login failed - show error
+                    console.log('[AUTH PAGE] Login failed - no user found');
+                    const errorMsg = 'Google login failed. This might be because:\n\n1. This device already has an account\n2. Login was cancelled\n3. Network issue\n\nPlease try logging in with email/password if you have an existing account.';
+                    
+                    localStorage.removeItem('googleLoginAttempt');
+                    sessionStorage.removeItem('processingGoogleRedirect');
+                    
+                    alert('LOGIN FAILED: ' + errorMsg);
+                    showToast('⚠️ ' + errorMsg, 'error', 15000);
+                    setDebugInfo('Login failed - no user found');
+                }
+            } else if (timeSince > 30000) {
+                // Old attempt, clear it
+                localStorage.removeItem('googleLoginAttempt');
+                sessionStorage.removeItem('processingGoogleRedirect');
+            }
+        };
         
-        setDebugInfo(`Mounted. Error: ${storedError || 'none'}`);
-        
-        if (storedError) {
-            console.log('[AUTH PAGE] Found stored error, displaying now');
-            
-            // TEMPORARY: Show alert for testing
-            alert('ERROR FOUND: ' + storedError);
-            
-            localStorage.removeItem('authError');
-            
-            // Show error immediately
-            const errorMessage = '⚠️ ' + storedError + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
-            showToast(errorMessage, 'error', 15000);
-            setDebugInfo(`Error shown: ${storedError.substring(0, 50)}...`);
-        } else {
-            console.log('[AUTH PAGE] No stored error found');
-            // TEMPORARY: Show alert for testing
-            alert('NO ERROR in localStorage');
-        }
+        checkLoginAttempt();
     }, []);
 
     // Check if user is already logged in
