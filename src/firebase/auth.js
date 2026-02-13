@@ -275,19 +275,26 @@ export const signInWithGoogle = async () => {
 // Handle Google redirect result (call this on page load)
 export const handleGoogleRedirect = async () => {
   try {
+    console.log('[AUTH] Checking redirect result...');
     const result = await getRedirectResult(auth);
+    
     if (result && result.user) {
       console.log('[AUTH] Processing Google redirect for:', result.user.email);
       const processResult = await processGoogleUser(result.user);
       
       // If processing failed, sign out the user
       if (!processResult.success) {
+        console.log('[AUTH] Processing failed, signing out user');
         await signOut(auth);
         console.log('[AUTH] Signed out user due to device restriction');
+        
+        // Error already stored in localStorage by processGoogleUser
       }
       
       return processResult;
     }
+    
+    console.log('[AUTH] No redirect result found');
     return null;
   } catch (error) {
     console.error('[AUTH] Google redirect error:', error);
@@ -299,6 +306,9 @@ export const handleGoogleRedirect = async () => {
     } else if (error.code === 'auth/network-request-failed') {
       errorMessage = 'Network error. Please check your connection and try again.';
     }
+    
+    // Store error in localStorage
+    localStorage.setItem('authError', errorMessage);
     
     return { success: false, error: errorMessage };
   }

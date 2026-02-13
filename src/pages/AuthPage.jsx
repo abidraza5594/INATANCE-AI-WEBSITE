@@ -21,14 +21,19 @@ export default function AuthPage() {
 
     // Check for stored auth error FIRST (before anything else)
     useEffect(() => {
+        console.log('[AUTH PAGE] Component mounted, checking for stored error...');
         const storedError = localStorage.getItem('authError');
+        console.log('[AUTH PAGE] Stored error:', storedError);
+        
         if (storedError) {
-            console.log('[AUTH PAGE] Found stored error:', storedError);
+            console.log('[AUTH PAGE] Found stored error, displaying now');
             localStorage.removeItem('authError');
             
             // Show error immediately
             const errorMessage = '⚠️ ' + storedError + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
-            showToast(errorMessage, 'error', 12000);
+            showToast(errorMessage, 'error', 15000);
+        } else {
+            console.log('[AUTH PAGE] No stored error found');
         }
     }, []);
 
