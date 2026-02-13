@@ -258,16 +258,23 @@ export const signInWithGoogle = async () => {
   try {
     if (isMobile()) {
       // Use redirect method for mobile devices
+      console.log('[AUTH] Mobile detected, using redirect method');
+      
+      // Set flag before redirect
+      sessionStorage.setItem('processingGoogleRedirect', 'true');
+      
       await signInWithRedirect(auth, googleProvider);
       // The result will be handled by handleGoogleRedirect
       return { success: true, redirecting: true };
     } else {
       // Use popup method for desktop
+      console.log('[AUTH] Desktop detected, using popup method');
       const result = await signInWithPopup(auth, googleProvider);
       return await processGoogleUser(result.user);
     }
   } catch (error) {
     console.error('[AUTH] Google sign-in error:', error);
+    sessionStorage.removeItem('processingGoogleRedirect');
     return { success: false, error: error.message };
   }
 };
@@ -277,9 +284,14 @@ export const handleGoogleRedirect = async () => {
   try {
     console.log('[AUTH] Checking redirect result...');
     const result = await getRedirectResult(auth);
+    console.log('[AUTH] getRedirectResult returned:', result ? 'user found' : 'null');
     
     if (result && result.user) {
       console.log('[AUTH] Processing Google redirect for:', result.user.email);
+      
+      // Mark that we're processing a redirect
+      sessionStorage.setItem('processingGoogleRedirect', 'true');
+      
       const processResult = await processGoogleUser(result.user);
       
       // If processing failed, sign out the user
@@ -289,15 +301,34 @@ export const handleGoogleRedirect = async () => {
         console.log('[AUTH] Signed out user due to device restriction');
         
         // Error already stored in localStorage by processGoogleUser
+      } else {
+        // Clear the flag on success
+        sessionStorage.removeItem('processingGoogleRedirect');
       }
       
       return processResult;
+    }
+    
+    // Check if we were expecting a redirect result
+    const wasProcessing = sessionStorage.getItem('processingGoogleRedirect');
+    if (wasProcessing) {
+      console.log('[AUTH] Was processing redirect but got null - checking current user');
+      sessionStorage.removeItem('processingGoogleRedirect');
+      
+      // Check if user is logged in
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        console.log('[AUTH] User is logged in:', currentUser.email);
+        // Process the current user
+        return await processGoogleUser(currentUser);
+      }
     }
     
     console.log('[AUTH] No redirect result found');
     return null;
   } catch (error) {
     console.error('[AUTH] Google redirect error:', error);
+    sessionStorage.removeItem('processingGoogleRedirect');
     
     // Handle specific error cases
     let errorMessage = error.message;
