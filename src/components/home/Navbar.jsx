@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Mic, Download } from 'lucide-react';
 
 export default function Navbar() {
@@ -52,7 +53,10 @@ export default function Navbar() {
                         </button>
                     </div>
 
-                    <div>
+                    <div className="flex items-center gap-6">
+                        <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                            Log In
+                        </Link>
                         <a
                             href="#"
                             onClick={(e) => { e.preventDefault(); alert('Download started!'); }}
