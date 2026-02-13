@@ -2,7 +2,12 @@ import { Download, PlayCircle } from 'lucide-react';
 
 export default function Hero() {
     const handleDownload = () => {
-        alert("Download functionality would be triggered here.");
+        const link = document.createElement('a');
+        link.href = 'https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe';
+        link.download = 'InstantInterview.exe';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleWatchDemo = () => {

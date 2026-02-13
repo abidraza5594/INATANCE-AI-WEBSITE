@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Mail, Lock, User, Check, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Check, AlertCircle, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '../firebase/auth';
 
 export default function AuthPage() {
     const [activeTab, setActiveTab] = useState('login');
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '' });
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        referralCode: ''
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Show welcome toast on mount
         showToast('Welcome back!');
     }, []);
 
@@ -21,19 +27,49 @@ export default function AuthPage() {
     const handleTabSwitch = (tab) => {
         setActiveTab(tab);
         showToast(tab === 'login' ? 'Welcome back!' : 'Join the team!');
+        setFormData({ name: '', email: '', password: '' });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            let result;
+            if (activeTab === 'login') {
+                result = await signInWithEmail(formData.email, formData.password);
+            } else {
+                result = await signUpWithEmail(formData.email, formData.password, formData.name, formData.referralCode);
+            }
 
-        setLoading(false);
-        showToast('Success! Redirecting...');
-        // In a real app, handle auth here
-        setTimeout(() => navigate('/'), 1000);
+            if (result.success) {
+                showToast('Success! Redirecting...');
+                setTimeout(() => navigate('/dashboard'), 1000);
+            } else {
+                showToast(result.error || 'Authentication failed');
+            }
+        } catch (error) {
+            showToast(error.message || 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        try {
+            const result = await signInWithGoogle();
+            if (result.success) {
+                showToast('Success! Redirecting...');
+                setTimeout(() => navigate('/dashboard'), 1000);
+            } else {
+                showToast(result.error || 'Google authentication failed');
+            }
+        } catch (error) {
+            showToast(error.message || 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -101,6 +137,8 @@ export default function AuthPage() {
                                         <input
                                             type="email"
                                             placeholder="Email address"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full bg-slate-950/50 border border-transparent focus:border-blue-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                             required
                                         />
@@ -112,6 +150,8 @@ export default function AuthPage() {
                                         <input
                                             type="password"
                                             placeholder="Password"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full bg-slate-950/50 border border-transparent focus:border-blue-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                             required
                                         />
@@ -154,6 +194,8 @@ export default function AuthPage() {
                                         <input
                                             type="text"
                                             placeholder="Full Name"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                             required
                                         />
@@ -165,6 +207,8 @@ export default function AuthPage() {
                                         <input
                                             type="email"
                                             placeholder="Email address"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                             required
                                         />
@@ -176,8 +220,22 @@ export default function AuthPage() {
                                         <input
                                             type="password"
                                             placeholder="Create Password"
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                             required
+                                        />
+                                    </div>
+                                    <div className="group relative">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400">
+                                            <Gift size={20} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Referral Code (Optional)"
+                                            value={formData.referralCode}
+                                            onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
+                                            className="w-full bg-slate-950/50 border border-transparent focus:border-emerald-500/50 focus:bg-slate-900/80 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium placeholder:text-slate-600 outline-none transition-all duration-300"
                                         />
                                     </div>
                                 </div>
@@ -204,7 +262,7 @@ export default function AuthPage() {
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
 
-                    <button className="w-full bg-slate-950/50 hover:bg-slate-900 border border-transparent hover:border-white/5 text-white text-sm font-medium py-3.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group">
+                    <button onClick={handleGoogleLogin} disabled={loading} className="w-full bg-slate-950/50 hover:bg-slate-900 border border-transparent hover:border-white/5 text-white text-sm font-medium py-3.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all duration-300" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>

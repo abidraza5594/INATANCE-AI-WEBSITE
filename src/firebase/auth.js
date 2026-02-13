@@ -1,4 +1,4 @@
-import { 
+import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -22,11 +22,11 @@ const checkDeviceAlreadyUsed = async (deviceInfo) => {
       where('deviceFingerprint', '==', deviceInfo.fingerprint)
     );
     const fingerprintDocs = await getDocs(fingerprintQuery);
-    
+
     if (!fingerprintDocs.empty) {
-      return { 
-        allowed: false, 
-        reason: 'This device has already been used to create an account. Only one free account per device is allowed.' 
+      return {
+        allowed: false,
+        reason: 'This device has already been used to create an account. Only one free account per device is allowed.'
       };
     }
 
@@ -36,11 +36,11 @@ const checkDeviceAlreadyUsed = async (deviceInfo) => {
       where('ipAddress', '==', deviceInfo.ipAddress)
     );
     const ipDocs = await getDocs(ipQuery);
-    
+
     if (!ipDocs.empty) {
-      return { 
-        allowed: false, 
-        reason: 'An account has already been created from this network. Only one free account per network is allowed.' 
+      return {
+        allowed: false,
+        reason: 'An account has already been created from this network. Only one free account per network is allowed.'
       };
     }
 
@@ -53,11 +53,11 @@ const checkDeviceAlreadyUsed = async (deviceInfo) => {
 };
 
 // Sign up with email and password
-export const signUpWithEmail = async (email, password, displayName) => {
+export const signUpWithEmail = async (email, password, displayName, referralCode = '') => {
   try {
     // Get device info
     const deviceInfo = await getDeviceInfo();
-    
+
     // Check if device/IP already used
     const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
     if (!deviceCheck.allowed) {
@@ -66,31 +66,73 @@ export const signUpWithEmail = async (email, password, displayName) => {
 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    
+
     // Update profile
     await updateProfile(user, { displayName });
-    
+
     // Create user document in Firestore with 2 hours free
     const docId = email.replace('@', '_at_').replace(/\./g, '_');
+
+    let initialSeconds = 7200; // 2 hours free
+    let referralBonusApplied = false;
+    let paymentHistory = [{
+      amount: 0,
+      seconds: 7200,
+      package: 'Welcome Bonus - 1 Free Interview',
+      date: new Date().toISOString(),
+      payment_id: 'free_signup_' + Date.now(),
+    }];
+
+    // Process Referral
+    if (referralCode) {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('referral_code', '==', referralCode.trim().toUpperCase()));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const referrerDoc = querySnapshot.docs[0];
+        const referrerData = referrerDoc.data();
+
+        // Give 2 hours bonus to Referrer
+        await updateDoc(doc(db, 'users', referrerDoc.id), {
+          remaining_seconds: (referrerData.remaining_seconds || 0) + 7200,
+          referrals: [
+            ...(referrerData.referrals || []),
+            { email: user.email, name: displayName, date: new Date().toISOString() }
+          ]
+        });
+
+        // Give 2 hours bonus to New User
+        initialSeconds += 7200;
+        referralBonusApplied = true;
+        paymentHistory.push({
+          amount: 0,
+          seconds: 7200,
+          package: 'Referral Bonus (Used code: ' + referralCode + ')',
+          date: new Date().toISOString(),
+          payment_id: 'referral_bonus_' + Date.now(),
+        });
+      }
+    }
+
+    // Generate unique referral code for new user
+    const newUserReferralCode = email.split('@')[0].toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+
     await setDoc(doc(db, 'users', docId), {
       email: user.email,
       displayName: displayName,
       photoURL: user.photoURL || '',
       createdAt: serverTimestamp(),
-      remaining_seconds: 7200, // 2 hours free for new users (1 interview)
-      total_purchased: 0, // Don't count free time - only actual purchases
+      remaining_seconds: initialSeconds,
+      total_purchased: 0,
       deviceFingerprint: deviceInfo.fingerprint,
       ipAddress: deviceInfo.ipAddress,
       deviceInfo: deviceInfo,
-      payment_history: [{
-        amount: 0,
-        seconds: 7200,
-        package: 'Welcome Bonus - 1 Free Interview',
-        date: new Date().toISOString(),
-        payment_id: 'free_signup_' + Date.now(),
-      }]
+      referral_code: newUserReferralCode,
+      referrals: [],
+      payment_history: paymentHistory
     });
-    
+
     return { success: true, user };
   } catch (error) {
     return { success: false, error: error.message };
@@ -112,16 +154,16 @@ export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
-    
+
     // Check if user document exists
     const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
     const userDoc = await getDoc(doc(db, 'users', docId));
-    
+
     // Create user document if doesn't exist (with 2 hours free)
     if (!userDoc.exists()) {
       // Get device info
       const deviceInfo = await getDeviceInfo();
-      
+
       // Check if device/IP already used
       const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
       if (!deviceCheck.allowed) {
@@ -158,7 +200,7 @@ export const signInWithGoogle = async () => {
         }, { merge: true });
       }
     }
-    
+
     return { success: true, user };
   } catch (error) {
     return { success: false, error: error.message };

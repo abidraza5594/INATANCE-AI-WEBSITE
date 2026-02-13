@@ -1,39 +1,46 @@
-import Razorpay from 'razorpay';
+const Razorpay = require('razorpay');
 
 export default async function handler(req, res) {
-  // Only allow POST requests
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { amount, email, phone } = req.body;
+    const { amount, packageName } = req.body;
 
-    // Initialize Razorpay
+    if (!amount || !packageName) {
+      return res.status(400).json({ error: 'Amount and package name are required' });
+    }
+
     const razorpay = new Razorpay({
-      key_id: 'rzp_live_SDa0tRbVfVpnhQ',
-      key_secret: '0Rajmnf2pV1PEEvsdvbiI7SU',
+      key_id: process.env.VITE_RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    // Create order with auto-capture
-    const order = await razorpay.orders.create({
-      amount: amount, // Amount in paise
+    const options = {
+      amount: amount * 100, // amount in paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
-      payment_capture: 1, // Auto-capture enabled
       notes: {
-        email: email,
-        phone: phone || '',
+        package: packageName,
       },
-    });
+    };
 
-    console.log('Order created:', order.id);
-    return res.status(200).json(order);
+    const order = await razorpay.orders.create(options);
+    res.status(200).json(order);
   } catch (error) {
-    console.error('Order creation error:', error);
-    return res.status(500).json({ 
-      error: 'Failed to create order',
-      details: error.message 
-    });
+    console.error('Error creating Razorpay order:', error);
+    res.status(500).json({ error: 'Failed to create order', details: error.message });
   }
 }

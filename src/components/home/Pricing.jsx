@@ -1,6 +1,57 @@
 import { Crown, Check, Gift, Zap, ShieldCheck, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { onAuthChange } from '../../firebase/auth';
+import { useState, useEffect } from 'react';
+import { initiatePayment } from '../../utils/razorpay';
+import { addPurchasedTime, getUserTime } from '../../utils/timeSync';
 
 export default function Pricing() {
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const unsubscribe = onAuthChange((currentUser) => {
+            setUser(currentUser);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handlePayment = async (amount, hours, packageName) => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+
+        const seconds = hours * 3600;
+        await initiatePayment(
+            amount,
+            packageName,
+            user.email,
+            user.displayName || 'User',
+            async (response) => {
+                const paymentId = response.razorpay_payment_id || response.razorpay_signature || `payment_${Date.now()}`;
+                
+                const success = await addPurchasedTime(
+                    user.email,
+                    seconds,
+                    amount,
+                    packageName,
+                    paymentId
+                );
+                
+                if (success) {
+                    alert(`Payment successful! ${hours} hours added to your account. Check your dashboard.`);
+                    navigate('/dashboard');
+                } else {
+                    alert('Payment received but failed to update account. Please contact support.');
+                }
+            },
+            (error) => {
+                console.error('Payment error:', error);
+                alert('Payment failed: ' + error);
+            }
+        );
+    };
     return (
         <section id="pricing" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="z-10 w-full">
@@ -38,7 +89,7 @@ export default function Pricing() {
                                     <Check className="w-4 h-4 text-emerald-400" /> Basic Profile Support
                                 </li>
                             </ul>
-                            <button className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">Get Started</button>
+                            <button onClick={() => handlePayment(300, 2, 'Standard - 2 Hours')} className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">Get Started (₹300)</button>
                         </div>
 
 
@@ -66,7 +117,7 @@ export default function Pricing() {
                                     <Check className="w-4 h-4 text-emerald-400" /> Priority Latency
                                 </li>
                             </ul>
-                            <button className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">Upgrade Now</button>
+                            <button onClick={() => handlePayment(500, 2, 'Professional - 2 Hours')} className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">Upgrade Now (₹500)</button>
                         </div>
                     </div>
 

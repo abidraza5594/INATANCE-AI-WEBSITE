@@ -58,8 +58,8 @@ export default function Navbar() {
                             Log In
                         </Link>
                         <a
-                            href="#"
-                            onClick={(e) => { e.preventDefault(); alert('Download started!'); }}
+                            href="https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe"
+                            download="InstantInterview.exe"
                             className="group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full bg-blue-600 px-6 font-medium text-white transition-all duration-300 hover:bg-blue-500 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                         >
                             <span className="mr-2">Download v1.0</span>
