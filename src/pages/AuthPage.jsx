@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Mail, Lock, User, Check, AlertCircle, Gift, X } from 'lucide-react';
+import { Mail, Lock, User, Check, Gift, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signUpWithEmail, signInWithEmail, signInWithGoogle, resetPassword, onAuthChange, handleGoogleRedirect } from '../firebase/auth';
-import { auth } from '../firebase/config';
+import { signUpWithEmail, signInWithEmail, resetPassword, onAuthChange } from '../firebase/auth';
 import Navbar from '../components/home/Navbar';
 
 export default function AuthPage() {
@@ -20,120 +19,17 @@ export default function AuthPage() {
     });
     const navigate = useNavigate();
 
-    // Check on page load for Google login issues (only if not mobile)
+    // Check if user is already logged in
     useEffect(() => {
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobileDevice) return; // Skip check on mobile
-        
-        const checkGoogleLogin = async () => {
-            const loginAttempt = localStorage.getItem('googleLoginAttempt');
-            if (!loginAttempt) return;
-            
-            const timeSince = Date.now() - parseInt(loginAttempt);
-            
-            // If recent attempt (within 30 seconds)
-            if (timeSince < 30000) {
-                // Wait for Firebase to settle
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                const currentUser = auth.currentUser;
-                
-                if (!currentUser) {
-                    // Login failed
-                    localStorage.removeItem('googleLoginAttempt');
-                    sessionStorage.removeItem('processingGoogleRedirect');
-                    
-                    showToast('⚠️ Google login failed. Please try again or use email/password login.', 'error');
-                }
-            } else {
-                // Old attempt, clear it
-                localStorage.removeItem('googleLoginAttempt');
-                sessionStorage.removeItem('processingGoogleRedirect');
-            }
-        };
-        
-        checkGoogleLogin();
-    }, []);
-
-    // Check if user is already logged in and handle device restrictions
-    useEffect(() => {
-        let authCheckTimeout;
-        
-        const unsubscribe = onAuthChange(async (user) => {
-            // If no user but recent login attempt, wait a bit
-            const loginAttempt = localStorage.getItem('googleLoginAttempt');
-            const timeSince = loginAttempt ? Date.now() - parseInt(loginAttempt) : null;
-            
-            if (!user && timeSince && timeSince < 15000) {
-                // Wait 2 seconds for auth to settle
-                authCheckTimeout = setTimeout(async () => {
-                    const currentUser = auth.currentUser;
-                    if (currentUser) {
-                        await handleAuthUser(currentUser);
-                    } else {
-                        sessionStorage.removeItem('processingGoogleRedirect');
-                        localStorage.removeItem('googleLoginAttempt');
-                        setCheckingAuth(false);
-                    }
-                }, 2000);
-                return;
-            }
-            
+        const unsubscribe = onAuthChange((user) => {
             if (user) {
-                await handleAuthUser(user);
+                navigate('/dashboard', { replace: true });
             } else {
                 setCheckingAuth(false);
             }
         });
-        
-        return () => {
-            unsubscribe();
-            if (authCheckTimeout) clearTimeout(authCheckTimeout);
-        };
+        return () => unsubscribe();
     }, [navigate]);
-    
-    // Handle authenticated user with device check
-    const handleAuthUser = async (user) => {
-        const loginAttempt = localStorage.getItem('googleLoginAttempt');
-        const timeSince = loginAttempt ? Date.now() - parseInt(loginAttempt) : null;
-        const isRecentLogin = timeSince && timeSince < 15000;
-        
-        if (isRecentLogin) {
-            // New Google login - check device
-            sessionStorage.removeItem('processingGoogleRedirect');
-            localStorage.removeItem('googleLoginAttempt');
-            
-            const { getDoc, doc, collection, query, where, getDocs } = await import('firebase/firestore');
-            const { db } = await import('../firebase/config');
-            const { getDeviceInfo } = await import('../utils/deviceFingerprint');
-            const { logOut } = await import('../firebase/auth');
-            
-            const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
-            const userDoc = await getDoc(doc(db, 'users', docId));
-            
-            if (!userDoc.exists()) {
-                // New user - check device
-                const deviceInfo = await getDeviceInfo();
-                
-                const fingerprintQuery = query(
-                    collection(db, 'users'),
-                    where('deviceFingerprint', '==', deviceInfo.fingerprint)
-                );
-                const fingerprintDocs = await getDocs(fingerprintQuery);
-                
-                if (!fingerprintDocs.empty) {
-                    // Device already used
-                    await logOut();
-                    showToast('⚠️ This device has already been used to create an account. Only one free account per device is allowed.\n\n💡 If you have an existing account, please login with your email and password.', 'error', 15000);
-                    setCheckingAuth(false);
-                    return;
-                }
-            }
-        }
-        
-        // Redirect to dashboard
-        navigate('/dashboard', { replace: true });
-    };
 
     // Handle Google redirect result on page load
     useEffect(() => {
@@ -290,48 +186,6 @@ export default function AuthPage() {
         } catch (error) {
             showToast('❌ ' + (error.message || 'An error occurred'), 'error');
         } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        // Check if mobile
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobileDevice) {
-            // Show message that Google login doesn't work well on mobile
-            showToast('⚠️ Google login has issues on mobile browsers.\n\nPlease use Email/Password signup or login instead.\n\nIt works perfectly!', 'error');
-            return;
-        }
-        
-        // Desktop - proceed with Google login
-        localStorage.removeItem('authError');
-        sessionStorage.setItem('processingGoogleRedirect', 'true');
-        localStorage.setItem('googleLoginAttempt', Date.now().toString());
-        
-        setLoading(true);
-        
-        try {
-            const result = await signInWithGoogle();
-            
-            if (result.redirecting) {
-                showToast('🔄 Redirecting to Google...', 'success', 2000);
-                return;
-            }
-            
-            if (result.success) {
-                showToast('✅ Success! Redirecting...', 'success', 2000);
-                setTimeout(() => navigate('/dashboard'), 1000);
-            } else {
-                sessionStorage.removeItem('processingGoogleRedirect');
-                localStorage.removeItem('googleLoginAttempt');
-                showToast('⚠️ ' + result.error, 'error');
-                setLoading(false);
-            }
-        } catch (error) {
-            sessionStorage.removeItem('processingGoogleRedirect');
-            localStorage.removeItem('googleLoginAttempt');
-            showToast('❌ ' + (error.message || 'An error occurred'), 'error');
             setLoading(false);
         }
     };
@@ -556,22 +410,6 @@ export default function AuthPage() {
                         </div>
                     </div>
 
-                    {/* Social Login */}
-                    <div className="flex items-center gap-4 my-2">
-                        <div className="h-px bg-white/10 flex-1"></div>
-                        <span className="text-xs uppercase text-slate-500 font-medium tracking-wider">or continue with</span>
-                        <div className="h-px bg-white/10 flex-1"></div>
-                    </div>
-
-                    <button onClick={handleGoogleLogin} disabled={loading} className="w-full bg-slate-950/50 hover:bg-slate-900 border border-transparent hover:border-white/5 text-white text-sm font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all duration-300" viewBox="0 0 24 24">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"></path>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
-                        </svg>
-                        Google Account
-                    </button>
                 </div>
             </div>
             </div>
