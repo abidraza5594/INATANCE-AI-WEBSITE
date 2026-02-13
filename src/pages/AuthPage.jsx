@@ -11,6 +11,7 @@ export default function AuthPage() {
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [debugInfo, setDebugInfo] = useState(''); // Debug info for mobile
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -25,15 +26,24 @@ export default function AuthPage() {
         const storedError = localStorage.getItem('authError');
         console.log('[AUTH PAGE] Stored error:', storedError);
         
+        setDebugInfo(`Mounted. Error: ${storedError || 'none'}`);
+        
         if (storedError) {
             console.log('[AUTH PAGE] Found stored error, displaying now');
+            
+            // TEMPORARY: Show alert for testing
+            alert('ERROR FOUND: ' + storedError);
+            
             localStorage.removeItem('authError');
             
             // Show error immediately
             const errorMessage = '⚠️ ' + storedError + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
             showToast(errorMessage, 'error', 15000);
+            setDebugInfo(`Error shown: ${storedError.substring(0, 50)}...`);
         } else {
             console.log('[AUTH PAGE] No stored error found');
+            // TEMPORARY: Show alert for testing
+            alert('NO ERROR in localStorage');
         }
     }, []);
 
@@ -54,18 +64,22 @@ export default function AuthPage() {
     useEffect(() => {
         const checkRedirect = async () => {
             console.log('[AUTH PAGE] Checking Google redirect...');
+            setDebugInfo(prev => prev + ' | Checking redirect...');
             
             try {
                 const result = await handleGoogleRedirect();
                 console.log('[AUTH PAGE] Redirect result:', result);
+                setDebugInfo(prev => prev + ` | Result: ${result ? 'found' : 'none'}`);
                 
                 if (result) {
                     if (result.success) {
                         console.log('[AUTH PAGE] Success, redirecting to dashboard');
+                        setDebugInfo(prev => prev + ' | Success!');
                         showToast('✅ Success! Redirecting to dashboard...', 'success', 2000);
                         setTimeout(() => navigate('/dashboard'), 1000);
                     } else if (result.error) {
                         console.log('[AUTH PAGE] Error from redirect:', result.error);
+                        setDebugInfo(prev => prev + ` | Error: ${result.error.substring(0, 30)}`);
                         // Error already stored in localStorage and shown by first useEffect
                     }
                 } else {
@@ -73,6 +87,7 @@ export default function AuthPage() {
                 }
             } catch (error) {
                 console.error('[AUTH PAGE] Error checking redirect:', error);
+                setDebugInfo(prev => prev + ` | Exception: ${error.message}`);
                 showToast('❌ An error occurred: ' + error.message, 'error', 8000);
             }
         };
@@ -241,6 +256,25 @@ export default function AuthPage() {
 
             {/* Navbar */}
             <Navbar />
+
+            {/* Debug Info - Only visible in development */}
+            {debugInfo && (
+                <div className="fixed bottom-4 left-4 right-4 z-[400] bg-black/90 text-white text-xs p-3 rounded-lg font-mono max-h-32 overflow-auto">
+                    <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-yellow-400">Debug Info:</span>
+                        <button 
+                            onClick={() => setDebugInfo('')}
+                            className="text-red-400 hover:text-red-300"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div className="whitespace-pre-wrap break-all">{debugInfo}</div>
+                    <div className="mt-2 pt-2 border-t border-white/20">
+                        <div>localStorage.authError: {localStorage.getItem('authError') || 'none'}</div>
+                    </div>
+                </div>
+            )}
 
             {/* Main Content */}
             <div className="flex-1 flex items-center justify-center pt-20 pb-8 px-4">
