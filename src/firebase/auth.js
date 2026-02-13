@@ -149,7 +149,24 @@ export const signUpWithEmail = async (email, password, displayName, referralCode
 
     return { success: true, user };
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error('[AUTH] Sign up error:', error);
+    
+    // User-friendly error messages
+    let errorMessage = error.message;
+    
+    if (error.code === 'auth/email-already-in-use') {
+      errorMessage = 'This email is already registered. Please login instead.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address format.';
+    } else if (error.code === 'auth/weak-password') {
+      errorMessage = 'Password is too weak. Please use at least 6 characters.';
+    } else if (error.code === 'auth/operation-not-allowed') {
+      errorMessage = 'Email/password accounts are not enabled. Please contact support.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Network error. Please check your internet connection.';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -159,7 +176,28 @@ export const signInWithEmail = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { success: true, user: userCredential.user };
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error('[AUTH] Sign in error:', error);
+    
+    // User-friendly error messages
+    let errorMessage = error.message;
+    
+    if (error.code === 'auth/invalid-credential') {
+      errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+    } else if (error.code === 'auth/user-not-found') {
+      errorMessage = 'No account found with this email. Please sign up first.';
+    } else if (error.code === 'auth/wrong-password') {
+      errorMessage = 'Incorrect password. Please try again or reset your password.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address format.';
+    } else if (error.code === 'auth/user-disabled') {
+      errorMessage = 'This account has been disabled. Please contact support.';
+    } else if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Too many failed login attempts. Please try again later or reset your password.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Network error. Please check your internet connection.';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 

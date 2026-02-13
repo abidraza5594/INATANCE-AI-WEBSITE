@@ -13,7 +13,8 @@ import {
     Key,
     Save,
     Eye,
-    EyeOff
+    EyeOff,
+    Trash2
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { onAuthChange, logOut } from '../firebase/auth';
@@ -136,6 +137,28 @@ export default function DashboardPage() {
             setUserData(updatedData);
         } else {
             alert('❌ Failed to save API keys: ' + result.error);
+        }
+    };
+
+    const handleRemoveAPIKeys = async () => {
+        if (!user) return;
+
+        const confirmed = confirm('Are you sure you want to remove your API keys? The desktop application will not work without API keys.');
+        if (!confirmed) return;
+
+        setSavingKeys(true);
+        const result = await saveUserAPIKeys(user.email, '', '');
+        setSavingKeys(false);
+
+        if (result.success) {
+            setMistralKey('');
+            setGeminiKey('');
+            alert('✅ API keys removed successfully!');
+            // Refresh user data
+            const updatedData = await getUserTime(user.email);
+            setUserData(updatedData);
+        } else {
+            alert('❌ Failed to remove API keys: ' + result.error);
         }
     };
 
@@ -324,23 +347,35 @@ export default function DashboardPage() {
                                         <span className="text-yellow-400">⚠️ API keys not configured - app won't work</span>
                                     )}
                                 </p>
-                                <button
-                                    onClick={handleSaveAPIKeys}
-                                    disabled={savingKeys}
-                                    className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all disabled:cursor-not-allowed"
-                                >
-                                    {savingKeys ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save size={18} />
-                                            Save API Keys
-                                        </>
+                                <div className="flex items-center gap-3">
+                                    {userData?.api_keys?.mistral && userData?.api_keys?.gemini && (
+                                        <button
+                                            onClick={handleRemoveAPIKeys}
+                                            disabled={savingKeys}
+                                            className="flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 disabled:bg-slate-700 text-red-400 font-bold px-5 py-3 rounded-xl transition-all disabled:cursor-not-allowed"
+                                        >
+                                            <Trash2 size={18} />
+                                            Remove Keys
+                                        </button>
                                     )}
-                                </button>
+                                    <button
+                                        onClick={handleSaveAPIKeys}
+                                        disabled={savingKeys}
+                                        className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-slate-700 text-white font-bold px-6 py-3 rounded-xl transition-all disabled:cursor-not-allowed"
+                                    >
+                                        {savingKeys ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save size={18} />
+                                                Save API Keys
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
