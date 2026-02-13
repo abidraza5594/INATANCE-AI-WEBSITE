@@ -35,14 +35,26 @@ export default function AuthPage() {
     // Handle Google redirect result on page load
     useEffect(() => {
         const checkRedirect = async () => {
+            setLoading(true);
             const result = await handleGoogleRedirect();
+            
             if (result) {
                 if (result.success) {
-                    showToast('✅ Success! Redirecting...', 'success');
-                    setTimeout(() => navigate('/dashboard'), 1000);
+                    showToast('✅ Success! Redirecting to dashboard...', 'success');
+                    setTimeout(() => navigate('/dashboard'), 1500);
                 } else if (result.error) {
-                    showToast('❌ ' + result.error, 'error');
+                    // Show user-friendly error message
+                    let errorMessage = result.error;
+                    
+                    if (errorMessage.includes('device') || errorMessage.includes('network')) {
+                        errorMessage = '⚠️ ' + errorMessage + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
+                    }
+                    
+                    showToast(errorMessage, 'error');
+                    setLoading(false);
                 }
+            } else {
+                setLoading(false);
             }
         };
         checkRedirect();
@@ -172,22 +184,21 @@ export default function AuthPage() {
                 return;
             }
             if (result.success) {
-                showToast('✅ Success! Redirecting...', 'success');
-                setTimeout(() => navigate('/dashboard'), 1000);
+                showToast('✅ Success! Redirecting to dashboard...', 'success');
+                setTimeout(() => navigate('/dashboard'), 1500);
             } else {
                 let errorMessage = result.error || 'Google authentication failed';
+                
                 if (errorMessage.includes('device') || errorMessage.includes('network')) {
-                    errorMessage = '⚠️ ' + errorMessage;
+                    errorMessage = '⚠️ ' + errorMessage + '\n\n💡 Tip: If you already have an account, please login with your original email and password.';
                 }
+                
                 showToast(errorMessage, 'error');
+                setLoading(false);
             }
         } catch (error) {
             showToast('❌ ' + (error.message || 'An error occurred'), 'error');
-        } finally {
-            // Only set loading to false if not redirecting
-            if (!result?.redirecting) {
-                setLoading(false);
-            }
+            setLoading(false);
         }
     };
 

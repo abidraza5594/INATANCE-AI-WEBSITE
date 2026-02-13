@@ -165,62 +165,86 @@ export const signInWithEmail = async (email, password) => {
 
 // Process Google user after successful authentication
 const processGoogleUser = async (user) => {
-  // Check if user document exists
-  const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
-  const userDoc = await getDoc(doc(db, 'users', docId));
+  try {
+    // Check if user document exists
+    const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
+    const userDoc = await getDoc(doc(db, 'users', docId));
 
-  // Create user document if doesn't exist (with 2 hours free)
-  if (!userDoc.exists()) {
-    // Get device info
-    const deviceInfo = await getDeviceInfo();
+    // Create user document if doesn't exist (with 2 hours free)
+    if (!userDoc.exists()) {
+      console.log('[AUTH] New Google user, checking device...');
+      
+      // Get device info
+      const deviceInfo = await getDeviceInfo();
 
-    // Check if device/IP already used
-    const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
-    if (!deviceCheck.allowed) {
-      // Delete the auth account since we can't allow signup
-      await user.delete();
-      return { success: false, error: deviceCheck.reason };
-    }
+      // Check if device/IP already used
+      const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
+      if (!deviceCheck.allowed) {
+        console.log('[AUTH] Device already used:', deviceCheck.reason);
+        
+        // Delete the auth account since we can't allow signup
+        try {
+          await user.delete();
+          console.log('[AUTH] Deleted unauthorized user account');
+        } catch (deleteError) {
+          console.error('[AUTH] Failed to delete user:', deleteError);
+        }
+        
+        return { 
+          success: false, 
+          error: '⚠️ ' + deviceCheck.reason + '\n\n💡 If you already have an account with a different email, please login using that email and password instead of Google login.'
+        };
+      }
 
-    // Generate unique referral code for new user
-    const newUserReferralCode = user.email.split('@')[0].toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+      console.log('[AUTH] Device check passed, creating user document...');
 
-    await setDoc(doc(db, 'users', docId), {
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL || '',
-      phoneNumber: user.phoneNumber || '',
-      createdAt: serverTimestamp(),
-      remaining_seconds: 7200, // 2 hours free for new users (Premium trial)
-      total_purchased: 0, // Don't count free time - only actual purchases
-      deviceFingerprint: deviceInfo.fingerprint,
-      ipAddress: deviceInfo.ipAddress,
-      deviceInfo: deviceInfo,
-      referral_code: newUserReferralCode,
-      referred_by: '',
-      referrals: [],
-      subscription_plan: 'premium', // Start with premium for trial
-      trial_mode: true, // Mark as trial user
-      api_keys: { mistral: '', gemini: '' }, // Empty by default
-      payment_history: [{
-        amount: 0,
-        seconds: 7200,
-        package: 'Welcome Bonus - 2 Hours Premium Trial',
-        date: new Date().toISOString(),
-        payment_id: 'free_google_' + Date.now(),
-      }]
-    });
-  } else {
-    // Update phone number if available
-    const currentData = userDoc.data();
-    if (user.phoneNumber && !currentData.phoneNumber) {
+      // Generate unique referral code for new user
+      const newUserReferralCode = user.email.split('@')[0].toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+
       await setDoc(doc(db, 'users', docId), {
-        phoneNumber: user.phoneNumber
-      }, { merge: true });
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL || '',
+        phoneNumber: user.phoneNumber || '',
+        createdAt: serverTimestamp(),
+        remaining_seconds: 7200, // 2 hours free for new users (Premium trial)
+        total_purchased: 0, // Don't count free time - only actual purchases
+        deviceFingerprint: deviceInfo.fingerprint,
+        ipAddress: deviceInfo.ipAddress,
+        deviceInfo: deviceInfo,
+        referral_code: newUserReferralCode,
+        referred_by: '',
+        referrals: [],
+        subscription_plan: 'premium', // Start with premium for trial
+        trial_mode: true, // Mark as trial user
+        api_keys: { mistral: '', gemini: '' }, // Empty by default
+        payment_history: [{
+          amount: 0,
+          seconds: 7200,
+          package: 'Welcome Bonus - 2 Hours Premium Trial',
+          date: new Date().toISOString(),
+          payment_id: 'free_google_' + Date.now(),
+        }]
+      });
+      
+      console.log('[AUTH] User document created successfully');
+    } else {
+      console.log('[AUTH] Existing Google user, logging in...');
+      
+      // Update phone number if available
+      const currentData = userDoc.data();
+      if (user.phoneNumber && !currentData.phoneNumber) {
+        await setDoc(doc(db, 'users', docId), {
+          phoneNumber: user.phoneNumber
+        }, { merge: true });
+      }
     }
-  }
 
-  return { success: true, user };
+    return { success: true, user };
+  } catch (error) {
+    console.error('[AUTH] Error processing Google user:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 // Sign in with Google (uses redirect on mobile, popup on desktop)
@@ -247,12 +271,30 @@ export const handleGoogleRedirect = async () => {
   try {
     const result = await getRedirectResult(auth);
     if (result && result.user) {
-      return await processGoogleUser(result.user);
+      console.log('[AUTH] Processing Google redirect for:', result.user.email);
+      const processResult = await processGoogleUser(result.user);
+      
+      // If processing failed, sign out the user
+      if (!processResult.success) {
+        await signOut(auth);
+        console.log('[AUTH] Signed out user due to device restriction');
+      }
+      
+      return processResult;
     }
     return null;
   } catch (error) {
     console.error('[AUTH] Google redirect error:', error);
-    return { success: false, error: error.message };
+    
+    // Handle specific error cases
+    let errorMessage = error.message;
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'Login cancelled. Please try again.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Network error. Please check your connection and try again.';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
