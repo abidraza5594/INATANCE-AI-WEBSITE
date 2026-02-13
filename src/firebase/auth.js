@@ -2,6 +2,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
@@ -15,6 +17,11 @@ import { getDeviceInfo } from '../utils/deviceFingerprint';
 import { getReferralCodeFromURL, processReferral, trackReferralSource } from '../utils/referral';
 
 const googleProvider = new GoogleAuthProvider();
+
+// Detect if device is mobile
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
 
 // Check if device/IP already used for signup
 const checkDeviceAlreadyUsed = async (deviceInfo) => {
@@ -156,64 +163,95 @@ export const signInWithEmail = async (email, password) => {
   }
 };
 
-// Sign in with Google
-export const signInWithGoogle = async () => {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+// Process Google user after successful authentication
+const processGoogleUser = async (user) => {
+  // Check if user document exists
+  const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
+  const userDoc = await getDoc(doc(db, 'users', docId));
 
-    // Check if user document exists
-    const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
-    const userDoc = await getDoc(doc(db, 'users', docId));
+  // Create user document if doesn't exist (with 2 hours free)
+  if (!userDoc.exists()) {
+    // Get device info
+    const deviceInfo = await getDeviceInfo();
 
-    // Create user document if doesn't exist (with 2 hours free)
-    if (!userDoc.exists()) {
-      // Get device info
-      const deviceInfo = await getDeviceInfo();
-
-      // Check if device/IP already used
-      const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
-      if (!deviceCheck.allowed) {
-        // Delete the auth account since we can't allow signup
-        await user.delete();
-        return { success: false, error: deviceCheck.reason };
-      }
-
-      await setDoc(doc(db, 'users', docId), {
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL || '',
-        phoneNumber: user.phoneNumber || '',
-        createdAt: serverTimestamp(),
-        remaining_seconds: 7200, // 2 hours free for new users (Premium trial)
-        locked_referral_bonus: 0, // No locked bonus for Google signup
-        total_purchased: 0, // Don't count free time - only actual purchases
-        deviceFingerprint: deviceInfo.fingerprint,
-        ipAddress: deviceInfo.ipAddress,
-        deviceInfo: deviceInfo,
-        subscription_plan: 'premium', // Start with premium for trial
-        trial_mode: true, // Mark as trial user
-        api_keys: { mistral: '', gemini: '' }, // Empty by default
-        payment_history: [{
-          amount: 0,
-          seconds: 7200,
-          package: 'Welcome Bonus - 2 Hours Premium Trial',
-          date: new Date().toISOString(),
-          payment_id: 'free_google_' + Date.now(),
-        }]
-      });
-    } else {
-      // Update phone number if available
-      const currentData = userDoc.data();
-      if (user.phoneNumber && !currentData.phoneNumber) {
-        await setDoc(doc(db, 'users', docId), {
-          phoneNumber: user.phoneNumber
-        }, { merge: true });
-      }
+    // Check if device/IP already used
+    const deviceCheck = await checkDeviceAlreadyUsed(deviceInfo);
+    if (!deviceCheck.allowed) {
+      // Delete the auth account since we can't allow signup
+      await user.delete();
+      return { success: false, error: deviceCheck.reason };
     }
 
-    return { success: true, user };
+    // Generate unique referral code for new user
+    const newUserReferralCode = user.email.split('@')[0].toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase();
+
+    await setDoc(doc(db, 'users', docId), {
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL || '',
+      phoneNumber: user.phoneNumber || '',
+      createdAt: serverTimestamp(),
+      remaining_seconds: 7200, // 2 hours free for new users (Premium trial)
+      total_purchased: 0, // Don't count free time - only actual purchases
+      deviceFingerprint: deviceInfo.fingerprint,
+      ipAddress: deviceInfo.ipAddress,
+      deviceInfo: deviceInfo,
+      referral_code: newUserReferralCode,
+      referred_by: '',
+      referrals: [],
+      subscription_plan: 'premium', // Start with premium for trial
+      trial_mode: true, // Mark as trial user
+      api_keys: { mistral: '', gemini: '' }, // Empty by default
+      payment_history: [{
+        amount: 0,
+        seconds: 7200,
+        package: 'Welcome Bonus - 2 Hours Premium Trial',
+        date: new Date().toISOString(),
+        payment_id: 'free_google_' + Date.now(),
+      }]
+    });
+  } else {
+    // Update phone number if available
+    const currentData = userDoc.data();
+    if (user.phoneNumber && !currentData.phoneNumber) {
+      await setDoc(doc(db, 'users', docId), {
+        phoneNumber: user.phoneNumber
+      }, { merge: true });
+    }
+  }
+
+  return { success: true, user };
+};
+
+// Sign in with Google (uses redirect on mobile, popup on desktop)
+export const signInWithGoogle = async () => {
+  try {
+    if (isMobile()) {
+      // Use redirect method for mobile devices
+      await signInWithRedirect(auth, googleProvider);
+      // The result will be handled by handleGoogleRedirect
+      return { success: true, redirecting: true };
+    } else {
+      // Use popup method for desktop
+      const result = await signInWithPopup(auth, googleProvider);
+      return await processGoogleUser(result.user);
+    }
   } catch (error) {
+    console.error('[AUTH] Google sign-in error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Handle Google redirect result (call this on page load)
+export const handleGoogleRedirect = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      return await processGoogleUser(result.user);
+    }
+    return null;
+  } catch (error) {
+    console.error('[AUTH] Google redirect error:', error);
     return { success: false, error: error.message };
   }
 };

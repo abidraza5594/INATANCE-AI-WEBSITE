@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Mail, Lock, User, Check, AlertCircle, Gift, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signUpWithEmail, signInWithEmail, signInWithGoogle, resetPassword } from '../firebase/auth';
+import { signUpWithEmail, signInWithEmail, signInWithGoogle, resetPassword, onAuthChange, handleGoogleRedirect } from '../firebase/auth';
 import Navbar from '../components/home/Navbar';
 
 export default function AuthPage() {
     const [activeTab, setActiveTab] = useState('login');
     const [loading, setLoading] = useState(false);
+    const [checkingAuth, setCheckingAuth] = useState(true);
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -17,6 +18,35 @@ export default function AuthPage() {
         referralCode: ''
     });
     const navigate = useNavigate();
+
+    // Check if user is already logged in
+    useEffect(() => {
+        const unsubscribe = onAuthChange((user) => {
+            if (user) {
+                // User is already logged in, redirect to dashboard
+                navigate('/dashboard', { replace: true });
+            } else {
+                setCheckingAuth(false);
+            }
+        });
+        return () => unsubscribe();
+    }, [navigate]);
+
+    // Handle Google redirect result on page load
+    useEffect(() => {
+        const checkRedirect = async () => {
+            const result = await handleGoogleRedirect();
+            if (result) {
+                if (result.success) {
+                    showToast('✅ Success! Redirecting...', 'success');
+                    setTimeout(() => navigate('/dashboard'), 1000);
+                } else if (result.error) {
+                    showToast('❌ ' + result.error, 'error');
+                }
+            }
+        };
+        checkRedirect();
+    }, [navigate]);
 
     useEffect(() => {
         // Get referral code from URL or localStorage
@@ -135,6 +165,12 @@ export default function AuthPage() {
         setLoading(true);
         try {
             const result = await signInWithGoogle();
+            if (result.redirecting) {
+                // Mobile redirect in progress, show loading message
+                showToast('🔄 Redirecting to Google...', 'success');
+                // Don't set loading to false, keep it true during redirect
+                return;
+            }
             if (result.success) {
                 showToast('✅ Success! Redirecting...', 'success');
                 setTimeout(() => navigate('/dashboard'), 1000);
@@ -148,9 +184,21 @@ export default function AuthPage() {
         } catch (error) {
             showToast('❌ ' + (error.message || 'An error occurred'), 'error');
         } finally {
-            setLoading(false);
+            // Only set loading to false if not redirecting
+            if (!result?.redirecting) {
+                setLoading(false);
+            }
         }
     };
+
+    // Show loading while checking auth state
+    if (checkingAuth) {
+        return (
+            <div className="min-h-screen bg-[#05080f] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="relative min-h-screen w-full flex flex-col overflow-hidden bg-[#05080f] text-white font-sans selection:bg-blue-500/30">
