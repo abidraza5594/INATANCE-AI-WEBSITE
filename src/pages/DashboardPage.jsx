@@ -242,8 +242,8 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                    {/* API Key Settings - Only for Basic Plan */}
-                    {userData?.subscription_plan === 'basic' && (
+                    {/* API Key Settings - For Basic and Standard Plans */}
+                    {(userData?.subscription_plan === 'basic' || userData?.subscription_plan === 'standard') && (
                         <div className="md:col-span-2 lg:col-span-3 bg-gradient-to-br from-yellow-500/5 to-orange-500/5 border border-yellow-500/20 rounded-[32px] p-8 glass">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
@@ -251,7 +251,9 @@ export default function DashboardPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold text-white">API Key Configuration</h3>
-                                    <p className="text-xs text-yellow-400 font-semibold">Basic Plan - Your API Keys Required</p>
+                                    <p className="text-xs text-yellow-400 font-semibold">
+                                        {userData?.subscription_plan === 'basic' ? 'Basic Plan' : 'Standard Plan'} - Your API Keys Required
+                                    </p>
                                 </div>
                             </div>
 
