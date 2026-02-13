@@ -50,38 +50,70 @@ export default function AuthPage() {
     // Check if user is already logged in
     useEffect(() => {
         const unsubscribe = onAuthChange(async (user) => {
+            console.log('[AUTH PAGE] Auth state changed, user:', user?.email || 'none');
+            setDebugInfo(prev => prev + ` | Auth: ${user?.email || 'none'}`);
+            
             if (user) {
-                console.log('[AUTH PAGE] User already logged in:', user.email);
+                console.log('[AUTH PAGE] User logged in:', user.email);
                 
-                // Check if this is a new Google login (check if user doc exists)
-                const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
-                try {
+                // Check if this is from a Google redirect
+                const wasProcessing = sessionStorage.getItem('processingGoogleRedirect');
+                console.log('[AUTH PAGE] Was processing redirect:', wasProcessing);
+                setDebugInfo(prev => prev + ` | WasProcessing: ${wasProcessing || 'no'}`);
+                
+                if (wasProcessing) {
+                    // This is a new Google login - need to check device
+                    console.log('[AUTH PAGE] Processing new Google login');
+                    sessionStorage.removeItem('processingGoogleRedirect');
+                    
+                    // Import Firebase functions
                     const { getDoc, doc } = await import('firebase/firestore');
                     const { db } = await import('../firebase/config');
+                    const { getDeviceInfo } = await import('../utils/deviceFingerprint');
+                    const { logOut } = await import('../firebase/auth');
+                    
+                    const docId = user.email.replace('@', '_at_').replace(/\./g, '_');
                     const userDoc = await getDoc(doc(db, 'users', docId));
                     
-                    if (userDoc.exists()) {
-                        // Existing user, redirect to dashboard
-                        console.log('[AUTH PAGE] Existing user, redirecting to dashboard');
-                        navigate('/dashboard', { replace: true });
-                    } else {
-                        // New user but doc doesn't exist - might be device restriction
-                        console.log('[AUTH PAGE] New user without doc - checking for error');
-                        const storedError = localStorage.getItem('authError');
-                        if (storedError) {
-                            // Sign out and show error
-                            const { logOut } = await import('../firebase/auth');
+                    if (!userDoc.exists()) {
+                        console.log('[AUTH PAGE] New user, checking device...');
+                        setDebugInfo(prev => prev + ' | Checking device...');
+                        
+                        // Get device info
+                        const deviceInfo = await getDeviceInfo();
+                        
+                        // Check if device already used
+                        const { collection, query, where, getDocs } = await import('firebase/firestore');
+                        
+                        // Check by fingerprint
+                        const fingerprintQuery = query(
+                            collection(db, 'users'),
+                            where('deviceFingerprint', '==', deviceInfo.fingerprint)
+                        );
+                        const fingerprintDocs = await getDocs(fingerprintQuery);
+                        
+                        if (!fingerprintDocs.empty) {
+                            const errorMsg = 'This device has already been used to create an account. Only one free account per device is allowed.';
+                            console.log('[AUTH PAGE] Device already used!');
+                            setDebugInfo(prev => prev + ' | DEVICE USED!');
+                            
+                            // Store error and sign out
+                            localStorage.setItem('authError', errorMsg);
                             await logOut();
+                            
+                            // Show error
+                            alert('ERROR: ' + errorMsg);
+                            showToast('⚠️ ' + errorMsg + '\n\n💡 Tip: If you already have an account, please login with your original email and password.', 'error', 15000);
                             setCheckingAuth(false);
-                        } else {
-                            // Redirect to dashboard (will be handled there)
-                            navigate('/dashboard', { replace: true });
+                            return;
                         }
+                        
+                        console.log('[AUTH PAGE] Device check passed, redirecting to dashboard');
                     }
-                } catch (error) {
-                    console.error('[AUTH PAGE] Error checking user doc:', error);
-                    navigate('/dashboard', { replace: true });
                 }
+                
+                // User is logged in, redirect to dashboard
+                navigate('/dashboard', { replace: true });
             } else {
                 setCheckingAuth(false);
             }
