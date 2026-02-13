@@ -336,16 +336,22 @@ export default function AuthPage() {
                 </div>
 
             {/* Toast Notification */}
-            <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[300] transition-all duration-300 transform max-w-[90vw] sm:max-w-md ${toast.show ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
-                <div className={`backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl font-semibold text-sm flex items-start gap-3 ${
+            <div className={`fixed bottom-8 left-4 right-4 z-[300] transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
+                <div className={`backdrop-blur-md px-5 py-4 rounded-2xl shadow-2xl font-medium text-sm flex items-start gap-3 max-w-md mx-auto ${
                     toast.type === 'error' 
-                        ? 'bg-red-500/95 text-white border-2 border-red-300' 
+                        ? 'bg-red-500/95 text-white border-2 border-red-400' 
                         : 'bg-white/95 text-slate-900 border-2 border-white'
                 }`}>
-                    <div className={`w-3 h-3 rounded-full animate-pulse flex-shrink-0 mt-0.5 ${
-                        toast.type === 'error' ? 'bg-white' : 'bg-emerald-500'
-                    }`}></div>
-                    <span className="whitespace-pre-line text-left flex-1">{toast.message}</span>
+                    {toast.type === 'error' ? (
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                    ) : (
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0 mt-1"></div>
+                    )}
+                    <span className="whitespace-pre-line text-left flex-1 leading-relaxed">{toast.message}</span>
                 </div>
             </div>
 
