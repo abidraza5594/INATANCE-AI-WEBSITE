@@ -202,9 +202,21 @@ export default function AuthPage() {
         }
     }, []);
 
-    const showToast = (message, type = 'success', duration = 6000) => {
+    const showToast = (message, type = 'success', duration = null) => {
+        // Auto-calculate duration based on message length for errors
+        let finalDuration = duration;
+        if (!finalDuration) {
+            if (type === 'error') {
+                // For errors: 15 seconds minimum, or 50ms per character (whichever is longer)
+                finalDuration = Math.max(15000, message.length * 50);
+            } else {
+                // For success: 4 seconds
+                finalDuration = 4000;
+            }
+        }
+        
         setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), duration);
+        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), finalDuration);
     };
 
     const handleTabSwitch = (tab) => {
@@ -335,22 +347,22 @@ export default function AuthPage() {
                     <div className="blob bg-emerald-500/30 w-[500px] h-[500px] rounded-full -bottom-20 -right-20 mix-blend-screen filter blur-[80px] animation-delay-2000"></div>
                 </div>
 
-            {/* Toast Notification */}
-            <div className={`fixed bottom-8 left-4 right-4 z-[300] transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
-                <div className={`backdrop-blur-md px-5 py-4 rounded-2xl shadow-2xl font-medium text-sm flex items-start gap-3 max-w-md mx-auto ${
-                    toast.type === 'error' 
-                        ? 'bg-red-500/95 text-white border-2 border-red-400' 
-                        : 'bg-white/95 text-slate-900 border-2 border-white'
-                }`}>
-                    {toast.type === 'error' ? (
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </div>
-                    ) : (
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse flex-shrink-0 mt-1"></div>
-                    )}
+            {/* Toast Notification - Success (Top) */}
+            <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[300] transition-all duration-300 transform max-w-[90vw] sm:max-w-md ${toast.show && toast.type === 'success' ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
+                <div className="backdrop-blur-md px-6 py-3 rounded-full shadow-lg font-semibold text-sm flex items-center gap-2 bg-white/90 text-slate-900">
+                    <div className="w-2 h-2 rounded-full animate-pulse bg-emerald-500"></div>
+                    <span className="whitespace-pre-line">{toast.message}</span>
+                </div>
+            </div>
+
+            {/* Error Notification (Bottom) */}
+            <div className={`fixed bottom-8 left-4 right-4 z-[300] transition-all duration-300 transform ${toast.show && toast.type === 'error' ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
+                <div className="backdrop-blur-md px-5 py-4 rounded-2xl shadow-2xl font-medium text-sm flex items-start gap-3 max-w-md mx-auto bg-red-500/95 text-white border-2 border-red-400">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-0.5">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
                     <span className="whitespace-pre-line text-left flex-1 leading-relaxed">{toast.message}</span>
                 </div>
             </div>
