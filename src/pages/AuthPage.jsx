@@ -31,40 +31,6 @@ export default function AuthPage() {
         return () => unsubscribe();
     }, [navigate]);
 
-    // Handle Google redirect result on page load
-    useEffect(() => {
-        const checkRedirect = async () => {
-            console.log('[AUTH PAGE] Checking Google redirect...');
-            setDebugInfo(prev => prev + ' | Checking redirect...');
-            
-            try {
-                const result = await handleGoogleRedirect();
-                console.log('[AUTH PAGE] Redirect result:', result);
-                setDebugInfo(prev => prev + ` | Result: ${result ? 'found' : 'none'}`);
-                
-                if (result) {
-                    if (result.success) {
-                        console.log('[AUTH PAGE] Success, redirecting to dashboard');
-                        setDebugInfo(prev => prev + ' | Success!');
-                        showToast('✅ Success! Redirecting to dashboard...', 'success', 2000);
-                        setTimeout(() => navigate('/dashboard'), 1000);
-                    } else if (result.error) {
-                        console.log('[AUTH PAGE] Error from redirect:', result.error);
-                        setDebugInfo(prev => prev + ` | Error: ${result.error.substring(0, 30)}`);
-                        // Error already stored in localStorage and shown by first useEffect
-                    }
-                } else {
-                    console.log('[AUTH PAGE] No redirect result');
-                }
-            } catch (error) {
-                console.error('[AUTH PAGE] Error checking redirect:', error);
-                setDebugInfo(prev => prev + ` | Exception: ${error.message}`);
-                showToast('❌ An error occurred: ' + error.message, 'error', 8000);
-            }
-        };
-        checkRedirect();
-    }, [navigate]);
-
     useEffect(() => {
         // Get referral code from URL or localStorage
         const urlParams = new URLSearchParams(window.location.search);
