@@ -20,8 +20,11 @@ export default function AuthPage() {
     });
     const navigate = useNavigate();
 
-    // Check on page load for Google login issues
+    // Check on page load for Google login issues (only if not mobile)
     useEffect(() => {
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobileDevice) return; // Skip check on mobile
+        
         const checkGoogleLogin = async () => {
             const loginAttempt = localStorage.getItem('googleLoginAttempt');
             if (!loginAttempt) return;
@@ -40,7 +43,7 @@ export default function AuthPage() {
                     localStorage.removeItem('googleLoginAttempt');
                     sessionStorage.removeItem('processingGoogleRedirect');
                     
-                    showToast('⚠️ Google login failed. If you have an existing account, please use email/password login instead.', 'error', 10000);
+                    showToast('⚠️ Google login failed. Please try again or use email/password login.', 'error');
                 }
             } else {
                 // Old attempt, clear it
@@ -292,7 +295,16 @@ export default function AuthPage() {
     };
 
     const handleGoogleLogin = async () => {
-        // Clear previous attempts
+        // Check if mobile
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobileDevice) {
+            // Show message that Google login doesn't work well on mobile
+            showToast('⚠️ Google login has issues on mobile browsers.\n\nPlease use Email/Password signup or login instead.\n\nIt works perfectly!', 'error');
+            return;
+        }
+        
+        // Desktop - proceed with Google login
         localStorage.removeItem('authError');
         sessionStorage.setItem('processingGoogleRedirect', 'true');
         localStorage.setItem('googleLoginAttempt', Date.now().toString());
@@ -313,13 +325,13 @@ export default function AuthPage() {
             } else {
                 sessionStorage.removeItem('processingGoogleRedirect');
                 localStorage.removeItem('googleLoginAttempt');
-                showToast('⚠️ ' + result.error, 'error', 10000);
+                showToast('⚠️ ' + result.error, 'error');
                 setLoading(false);
             }
         } catch (error) {
             sessionStorage.removeItem('processingGoogleRedirect');
             localStorage.removeItem('googleLoginAttempt');
-            showToast('❌ ' + (error.message || 'An error occurred'), 'error', 8000);
+            showToast('❌ ' + (error.message || 'An error occurred'), 'error');
             setLoading(false);
         }
     };
