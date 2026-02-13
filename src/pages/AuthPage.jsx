@@ -129,9 +129,13 @@ export default function AuthPage() {
                 if (activeTab === 'signup') {
                     localStorage.removeItem('referralCode');
                     localStorage.removeItem('referralExpiry');
+                    
+                    // Wait a bit longer for Firestore to save user data after signup
+                    setTimeout(() => navigate('/dashboard'), 2000);
+                } else {
+                    // Login - redirect faster
+                    setTimeout(() => navigate('/dashboard'), 1000);
                 }
-                
-                setTimeout(() => navigate('/dashboard'), 1000);
             } else {
                 // Show user-friendly error messages
                 let errorMessage = result.error || 'Authentication failed';

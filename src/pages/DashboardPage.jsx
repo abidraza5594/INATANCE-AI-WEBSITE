@@ -38,7 +38,17 @@ export default function DashboardPage() {
         const unsubscribe = onAuthChange(async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
-                const timeData = await getUserTime(currentUser.email);
+                
+                // Try to get user data with retry logic for new signups
+                let timeData = await getUserTime(currentUser.email);
+                
+                // If no data found (new signup), retry after 1 second
+                if (!timeData || !timeData.referral_code) {
+                    console.log('[DASHBOARD] User data not found, retrying...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    timeData = await getUserTime(currentUser.email);
+                }
+                
                 setUserData(timeData);
                 
                 // Load existing API keys if available
