@@ -48,7 +48,7 @@ export default function Navbar() {
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
                             <Mic className="w-6 h-6 text-white" />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-white hidden sm:block">Interview.AI</span>
+                        <span className="font-bold text-xl tracking-tight text-white hidden sm:block">CrackInterviewAI</span>
                     </Link>
 
                     <div className="hidden md:flex items-center space-x-8">
