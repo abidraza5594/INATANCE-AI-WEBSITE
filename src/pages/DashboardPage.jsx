@@ -21,6 +21,7 @@ import { onAuthChange, logOut } from '../firebase/auth';
 import { getUserTime, formatTime, addPurchasedTime } from '../utils/timeSync';
 import { initiatePayment } from '../utils/razorpay';
 import { saveUserAPIKeys, validateAPIKeys } from '../utils/apiKeyManager';
+import DownloadModal from '../components/shared/DownloadModal';
 
 export default function DashboardPage() {
     const [user, setUser] = useState(null);
@@ -32,25 +33,26 @@ export default function DashboardPage() {
     const [showMistralKey, setShowMistralKey] = useState(false);
     const [showGeminiKey, setShowGeminiKey] = useState(false);
     const [savingKeys, setSavingKeys] = useState(false);
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         const unsubscribe = onAuthChange(async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
-                
+
                 // Try to get user data with retry logic for new signups
                 let timeData = await getUserTime(currentUser.email);
-                
+
                 // If no data found (new signup), retry after 1 second
                 if (!timeData || !timeData.referral_code) {
                     console.log('[DASHBOARD] User data not found, retrying...');
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     timeData = await getUserTime(currentUser.email);
                 }
-                
+
                 setUserData(timeData);
-                
+
                 // Load existing API keys if available
                 if (timeData?.api_keys) {
                     setMistralKey(timeData.api_keys.mistral || '');
@@ -71,12 +73,7 @@ export default function DashboardPage() {
     };
 
     const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = 'https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe';
-        link.download = 'InstantInterview.exe';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setIsDownloadModalOpen(true);
     };
 
     const copyReferralCode = () => {
@@ -92,7 +89,7 @@ export default function DashboardPage() {
 
         const seconds = hours * 3600;
         const plan = amount === 300 ? 'basic' : 'premium';
-        
+
         await initiatePayment(
             amount,
             packageName,
@@ -101,7 +98,7 @@ export default function DashboardPage() {
             async (response) => {
                 // Payment successful - save to database
                 const paymentId = response.razorpay_payment_id || response.razorpay_signature || `payment_${Date.now()}`;
-                
+
                 const success = await addPurchasedTime(
                     user.email,
                     seconds,
@@ -110,7 +107,7 @@ export default function DashboardPage() {
                     paymentId,
                     plan
                 );
-                
+
                 if (success) {
                     const updatedData = await getUserTime(user.email);
                     setUserData(updatedData);
@@ -422,19 +419,19 @@ export default function DashboardPage() {
                                     const percentage = totalSeconds > 0 ? (remainingSeconds / totalSeconds) : 0;
                                     const circumference = 2 * Math.PI * 24; // 2πr where r=24
                                     const offset = circumference - (circumference * percentage);
-                                    
+
                                     return (
                                         <svg className="w-full h-full -rotate-90">
                                             <circle cx="28" cy="28" r="24" className="stroke-white/5 fill-none" strokeWidth="4" />
-                                            <circle 
-                                                cx="28" 
-                                                cy="28" 
-                                                r="24" 
-                                                className="stroke-blue-500 fill-none transition-all duration-500" 
-                                                strokeWidth="4" 
+                                            <circle
+                                                cx="28"
+                                                cy="28"
+                                                r="24"
+                                                className="stroke-blue-500 fill-none transition-all duration-500"
+                                                strokeWidth="4"
                                                 strokeDasharray={circumference}
                                                 strokeDashoffset={offset}
-                                                strokeLinecap="round" 
+                                                strokeLinecap="round"
                                             />
                                         </svg>
                                     );
@@ -451,7 +448,7 @@ export default function DashboardPage() {
                                     return `${percentage}% of ${formatTime(totalSeconds)} remaining`;
                                 })()}
                             </p>
-                            
+
                             {/* Show trial mode badge */}
                             {userData?.trial_mode && (
                                 <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
@@ -463,7 +460,7 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                             )}
-                            
+
                             {/* Show if user was referred */}
                             {userData?.referred_by && userData?.total_purchased === 0 && (
                                 <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
@@ -561,7 +558,7 @@ export default function DashboardPage() {
                     <div className="md:col-span-2 lg:col-span-3 bg-white/[0.02] border border-white/5 rounded-[32px] p-8 glass hover:border-white/10 transition-colors">
                         <div className="flex justify-between items-center mb-8">
                             <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Recent Billing</p>
-                            <button 
+                            <button
                                 onClick={handleExportHistory}
                                 className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white font-bold px-3 py-1.5 rounded-lg border border-white/5 hover:bg-white/5 flex items-center gap-1.5 transition-all"
                             >
@@ -604,6 +601,7 @@ export default function DashboardPage() {
 
                 </div>
             </div>
+            <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} />
         </div>
     );
 }

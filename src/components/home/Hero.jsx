@@ -1,13 +1,12 @@
 import { Download, PlayCircle } from 'lucide-react';
+import { useState } from 'react';
+import DownloadModal from '../shared/DownloadModal';
 
 export default function Hero() {
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+
     const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = 'https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe';
-        link.download = 'InstantInterview.exe';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setIsDownloadModalOpen(true);
     };
 
     const handleWatchDemo = () => {
@@ -53,6 +52,7 @@ export default function Hero() {
                     </button>
                 </div>
             </div>
+            <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} />
         </div>
     );
 }

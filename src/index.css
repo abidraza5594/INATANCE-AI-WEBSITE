@@ -134,3 +134,12 @@
 .animate-progress {
   animation: progress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+@keyframes progress-stripe {
+    from { background-position: 0 0; }
+    to { background-position: 20px 0; }
+}
+
+.animate-progress-stripe {
+    animation: progress-stripe 1s linear infinite;
+}

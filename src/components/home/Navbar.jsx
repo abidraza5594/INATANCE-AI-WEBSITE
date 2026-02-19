@@ -1,12 +1,14 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mic, Download, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import DownloadModal from '../shared/DownloadModal';
 import { onAuthChange, logOut } from '../../firebase/auth';
 
 export default function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const [user, setUser] = useState(null);
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthChange((currentUser) => {
@@ -103,18 +105,18 @@ export default function Navbar() {
                                 Log In
                             </Link>
                         )}
-                        <a
-                            href="https://github.com/abidraza5594/INATANCE-AI-WEBSITE/releases/download/v1.0.0/InstantInterview.exe"
-                            download="InstantInterview.exe"
+                        <button
+                            onClick={() => setIsDownloadModalOpen(true)}
                             className="group relative inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-full bg-blue-600 px-4 sm:px-6 font-medium text-white transition-all duration-300 hover:bg-blue-500 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                         >
                             <span className="hidden sm:inline">Download v1.0</span>
                             <span className="sm:hidden">Download</span>
                             <Download className="w-4 h-4 transition-transform group-hover:translate-y-1" />
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
+            <DownloadModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} />
         </nav>
     );
 }
